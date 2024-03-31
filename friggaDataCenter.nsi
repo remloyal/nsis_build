@@ -13,7 +13,7 @@
 !define MY_GUID "friggaDataCenter"
 
 SetCompressor lzma
-
+RequestExecutionLevel user
 ; ------ MUI 现代界面定义1.67 版本以上兼容) ------
 !include "MUI.nsh"
 !include "nsProcess.nsh"
@@ -192,6 +192,20 @@ SectionEnd
 
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function un.onInit
+  nsProcess::_FindProcess "NoTePad.exe"
+  Pop $R0
+  ${If} $R0 == 0
+    MessageBox MB_YESNO "$(RunPrompt)" IDYES label_yes  IDNO label_no
+  ${ElseIf} $R0 == 603
+    Goto run
+	${EndIf}
+  label_yes:
+    ;nsProcess::_KillProcess "${PRODUCT_NAME}.exe"
+    nsProcess::_KillProcess "NoTePad.exe"
+    Goto run
+  label_no:
+    Quit
+  run:
   !insertmacro MUI_UNGETLANGUAGE
   StrCmp $LANGUAGE 2052 ZH_INI EN_INI
   EN_INI:
@@ -203,8 +217,6 @@ Function un.onInit
   MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "您确实要完全移除 $(^Name)及其所有的组件？" IDYES +2
   Abort
   END:
-  
- 
 FunctionEnd
 
 Function un.onUninstSuccess
@@ -217,7 +229,7 @@ Function un.onUninstSuccess
   ZH_INI:
     MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) 已成功地从您的计算机移除。"
   END:
-  
+
 FunctionEnd
 
 VIProductVersion "${PRODUCT_VERSION}" ;版本号，格式为 X.X.X.X若使用则本条必须)
