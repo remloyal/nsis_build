@@ -65,9 +65,9 @@ LangString NoButton ${LANG_ENGLISH} "No"
 ; ------ MUI 现代界面定义结束 ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Frigga_Data_Center_${PRODUCT_FILE_VERSION}_.exe"
-;InstallDir "D:\Program Files\Frigga"
-InstallDir "F:\project\nsis\Frigga"
+OutFile ".\OutFile\Frigga_Data_Center_${PRODUCT_FILE_VERSION}_.exe"
+InstallDir "D:\Program Files\Frigga"
+;InstallDir "F:\project\nsis\Frigga"
 InstallDirRegKey HKLM "${PRODUCT_UNINST_KEY}" "UninstallString"
 ShowInstDetails show
 ShowUnInstDetails show
