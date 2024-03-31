@@ -1,0 +1,62 @@
+{{PageAuthor|Takhir}}
+
+== Links ==
+
+Download:<br>
+<attach>AnimGif.zip</attach>
+<attach>AnimGifPe.zip</attach>
+
+[http://forums.winamp.com/showthread.php?threadid=237737 Forum thread]
+
+== Description ==
+
+AnimGif.dll is NSIS plug-in, displaying animated banner on the installer page. Based on the Juan Soulie code. Unfortunately base program fails on some images (very seldom), this case you can use AnimGifPe.zip variant based on the Oleg Bykov' PictureEx sample, which also supports static BMP and JPEG, but unpacks image very slowly. Plug-in not stops installer execution when banner is displayed. Banner is not clickable. May be used in the page custom show/leave functions and on other (not page) windows with possible trasparency limitations.
+
+== Command line (NSIS script) ==
+
+Plug-in DLL functions (entry points): play, stop
+
+=== play DLL Function ===
+
+ AnimGif::play /NOUNLOAD [/HALIGN=POSX] [/VALIGN=POSY] [/HWND=xxx] [/FIT=WIDTH|HEIGHT|BOTH] [/BGCOL=xxx] FileName
+
+; /HALIGN
+: image horizontal position in percent of dialog width, default is center (50).
+
+; /VALIGN
+: image vertical position in persevts of dialog height, default (no parameter) is bottom (100).
+
+; /HWND
+: target window, default (no parameter) is "#32770" child of $HWNDPARENT .
+
+
+; /BGCOL
+: color to use for image trasparent areas. If not defined, plug-in attempts to extract value from target window, but this is not possible if window is hidden. Color value may be hex (starting with 0x) and decimal (first is not 0). Hex value will be used as RGB color, decimal - as Windows system color index in GetSysColor() API call, see MSDN. If value not specified and target window stays hidden (for example in custom 'Show' function), default COLOR_BTNFACE will be used.
+
+; /FIT
+: image stretch to occupy window width or height. For Welcome page left logo and screen dpi 120 mainly. Default - no stretch.
+
+; FileName
+: Image file name.
+
+=== stop DLL Function ===
+
+ AnimGif::stop
+
+: Stops animation and cleares the screeen.
+
+
+
+== Examples ==
+
+Package includes nsi script sample.
+<highlight-nsis>
+SetOutPath '$PLUGINSDIR'
+File sample.gif
+AnimGif::play /NOUNLOAD '$PLUGINSDIR\sample.gif'
+; Add your page code here
+AnimGif::stop
+Delete '$PLUGINSDIR\sample.gif'
+</highlight-nsis>
+
+[[Category:Plugins]]

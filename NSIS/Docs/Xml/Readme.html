@@ -1,0 +1,1759 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=gb2312">
+<title>XML NSIS plugin</title>
+
+<style type="text/css">
+<!-- doxygen.css -->
+H1 {
+	text-align: center;
+	font-family: Arial, Helvetica, sans-serif;
+}
+H2 {
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+}
+CAPTION { font-weight: bold }
+DIV.qindex {
+	width: 100%;
+	background-color: #eeeeff;
+	border: 1px solid #B0B0B0;
+	text-align: center;
+	margin: 2px;
+	padding: 2px;
+}
+A.qindex {
+       text-decoration: none;
+       font-weight: bold;
+       color: #1A419D;
+       padding: 2px;
+}
+A.qindex:visited {
+       text-decoration: none;
+       font-weight: bold;
+       color: #1A419D
+       padding: 2px;
+}
+A.qindex:hover {
+	text-decoration: none;
+	background-color: #ddddff;
+	padding: 2px;
+}
+A.qindexHL {
+	text-decoration: none;
+	font-weight: bold;
+	background-color: #6666cc;
+	color: #ffffff;
+	padding: 2 6px;
+	border: 1px double #9295C2;
+           }
+A.qindexHL:hover {
+	text-decoration: none;
+	background-color: #6666cc;
+	color: #ffffff;
+	padding: 2px 6px;
+}
+A.qindexHL:visited { text-decoration: none; background-color: #6666cc; color: #ffffff }
+A.el { text-decoration: none; font-weight: bold }
+A.elRef { font-weight: bold }
+A.code { text-decoration: none; font-weight: normal; color: #1A419D}
+A.codeRef { font-weight: normal; color: #1A419D}
+A:hover { text-decoration: none; background-color: #f2f2ff }
+DL.el { margin-left: -1cm }
+PRE.fragment {
+	border: 1px solid #CCCCCC;
+	background-color: #f5f5f5;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	margin-left: 2px;
+	margin-right: 8px;
+	padding-left: 6px;
+	padding-right: 6px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+DIV.fragment {
+	border: 1px solid #CCCCCC;
+	background-color: #f5f5f5;
+	padding: 6px;
+}
+DIV.ah { background-color: black; font-weight: bold; color: #ffffff; margin-bottom: 3px; margin-top: 3px }
+TD.md { background-color: #F4F4FB; font-weight: bold; }
+TD.mdname1 { background-color: #F4F4FB; font-weight: bold; color: #602020; }
+TD.mdname { background-color: #F4F4FB; font-weight: bold; color: #602020; width: 600px; }
+DIV.groupHeader { margin-left: 16px; margin-top: 12px; margin-bottom: 6px; font-weight: bold }
+DIV.groupText { margin-left: 16px; font-style: italic; font-size: smaller }
+BODY {
+	background: white;
+	color: black;
+	margin-right: 20px;
+	margin-left: 20px;
+}
+TD.indexkey {
+	background-color: #eeeeff;
+	font-weight: bold;
+	padding-right  : 10px;
+	padding-top    : 2px;
+	padding-left   : 10px;
+	padding-bottom : 2px;
+	margin-left    : 0px;
+	margin-right   : 0px;
+	margin-top     : 2px;
+	margin-bottom  : 2px;
+	border: 1px solid #CCCCCC;
+}
+TD.indexvalue {
+	background-color: #eeeeff;
+	font-style: italic;
+	padding-right  : 10px;
+	padding-top    : 2px;
+	padding-left   : 10px;
+	padding-bottom : 2px;
+	margin-left    : 0px;
+	margin-right   : 0px;
+	margin-top     : 2px;
+	margin-bottom  : 2px;
+	border: 1px solid #CCCCCC;
+}
+TR.memlist {
+   background-color: #f0f0f0; 
+}
+P.formulaDsp { text-align: center; }
+IMG.formulaDsp { }
+IMG.formulaInl { vertical-align: middle; }
+SPAN.keyword       { color: #008000 }
+SPAN.keywordtype   { color: #604020 }
+SPAN.keywordflow   { color: #e08000 }
+SPAN.comment       { color: #800000 }
+SPAN.preprocessor  { color: #806020 }
+SPAN.stringliteral { color: #002080 }
+SPAN.charliteral   { color: #008080 }
+.mdTable {
+	border: 1px solid #868686;
+	background-color: #F4F4FB;
+}
+.mdRow {
+	padding: 8px 10px;
+}
+.mdescLeft {
+	font-size: smaller;
+	font-family: Arial, Helvetica, sans-serif;
+	background-color: #FAFAFA;
+	padding-left: 8px;
+	border-top: 1px none #E0E0E0;
+	border-right: 1px none #E0E0E0;
+	border-bottom: 1px none #E0E0E0;
+	border-left: 1px none #E0E0E0;
+	margin: 0px;
+}
+.mdescRight {
+	font-size: smaller;
+	font-family: Arial, Helvetica, sans-serif;
+	font-style: italic;
+	background-color: #FAFAFA;
+	padding-left: 4px;
+	border-top: 1px none #E0E0E0;
+	border-right: 1px none #E0E0E0;
+	border-bottom: 1px none #E0E0E0;
+	border-left: 1px none #E0E0E0;
+	margin: 0px;
+	padding-bottom: 0px;
+	padding-right: 8px;
+}
+.memItemLeft {
+	padding: 1px 0px 0px 8px;
+	margin: 4px;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-top-style: solid;
+	border-top-color: #E0E0E0;
+	border-right-color: #E0E0E0;
+	border-bottom-color: #E0E0E0;
+	border-left-color: #E0E0E0;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	background-color: #FAFAFA;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+.memItemRight {
+	padding: 1px 0px 0px 8px;
+	margin: 4px;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-top-style: solid;
+	border-top-color: #E0E0E0;
+	border-right-color: #E0E0E0;
+	border-bottom-color: #E0E0E0;
+	border-left-color: #E0E0E0;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	background-color: #FAFAFA;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size: 13px;
+}
+
+.search     { color: #003399;
+              font-weight: bold;
+}
+FORM.search {
+              margin-bottom: 0px;
+              margin-top: 0px;
+}
+INPUT.search { font-size: 75%;
+               color: #000080;
+               font-weight: normal;
+               background-color: #eeeeff;
+}
+TD.tiny      { font-size: 75%;
+}
+a {
+	color: #252E78;
+}
+a:visited {
+	color: #3D2185;
+}
+footer {
+            font-size: 75%;
+            color: #000000;
+            position: fixed;
+            bottom: 0;
+            right: 0; 
+            background-color: #fififi; 
+            padding: 5px;
+        }
+</style>
+</head>
+
+<body>
+<h1>XML NSIS 插件 v2.0</h1>
+2008 年 Shengalts Aleksander，网名 Instructor (<A href="mailto:Shengalts@mail.ru">Shengalts@mail.ru</A>)
+<br>
+<br>
+
+<h2>目录</h2>
+
+<table border=0 cellpadding=0 cellspacing=0>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#0">1. 使用说明</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#1">2. 插件特性</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#2">3. 特殊字符</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#3">  4. XML文件示例</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#4">5. 插件函数</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br> 文件格式</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#5">${xml::SetCondenseWhiteSpace} "[1|0]"</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#6">${xml::SetEncoding} "[encoding]"</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br> 文档文件</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#7">${xml::LoadFile} "[file]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#8">${xml::SaveFile} "[file]" $var</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>声明节点</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#9">${xml::DeclarationVersion} $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#10">${xml::DeclarationEncoding} $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#11">${xml::DeclarationStandalone} $var1 $var2</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br> 文本节点</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#12">${xml::GetText} $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#13">${xml::SetText} "[value]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#14">${xml::SetCDATA} "[0|1]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#15">${xml::IsCDATA} $var</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br> 节点值</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#16">${xml::GetNodeValue} $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom>
+      <P><A class=el href="Readme.html#17">${xml::SetNodeValue} "[value]"</A></P></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">
+      <P><br> 分级搜索</P> </td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#18">${xml::FindNextElement} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#19">${xml::FindCloseElement}</A></td></tr>
+
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br> 分级移动</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#20">${xml::RootElement} $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#21">${xml::FirstChildElement} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#22">${xml::FirstChild} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#23">${xml::LastChild} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#24">${xml::Parent} $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#25">${xml::NoChildren} $var</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>同级移动</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#26">${xml::NextSiblingElement} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#27">${xml::NextSibling} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#28">${xml::PreviousSibling} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>层级修改</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#29">${xml::InsertAfterNode} "[handle]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#30">${xml::InsertBeforeNode} "[handle]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#31">${xml::InsertEndChild} "[handle]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#32">${xml::ReplaceNode} "[handle]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#33">${xml::RemoveNode} $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#34">${xml::RemoveAllChild}</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>节点与内存</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#35">${xml::CreateText} "[text]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#36">${xml::CreateNode} "&lt;a&gt;text&lt;/a&gt;" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#37">${xml::CloneNode} $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#38">${xml::FreeNode} "[handle]" $var</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>XPath</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#39">${xml::XPathString} "[expression]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#40">${xml::XPathNode} "[expression]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#41">${xml::XPathAttribute} "[expression]" $var</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>其他节点功能</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#42">${xml::NodeHandle} $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#43">${xml::GotoHandle} "[handle]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#44">${xml::ElementPath} $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#45">${xml::GotoPath} "[path]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#46">${xml::NodeType} $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#47">${xml::Coordinate} $var1 $var2 $var3</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>属性</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#48">${xml::GetAttribute} "[name]" $var1 $var2</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#49">${xml::SetAttribute} "[name]" "[value]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#50">${xml::RemoveAttribute} "[name]" $var</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#51">${xml::FirstAttribute} $var1 $var2 $var3</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#52">${xml::LastAttribute} $var1 $var2 $var3</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#53">${xml::NextAttribute} $var1 $var2 $var3</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#54">${xml::PreviousAttribute} $var1 $var2 $var3</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#55">${xml::CurrentAttribute} $var1 $var2 $var3</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#56">${xml::SetAttributeName} "[name]"</A></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#57">${xml::SetAttributeValue} "[value]"</A></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><br>卸载插件</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>
+&nbsp;</td><td class="memItemRight" valign=bottom><A class=el href="Readme.html#57">${xml::Unload}</A></td></tr>
+
+</table>
+
+<a class="anchor" name="0" ></a>
+<hr>
+<br>
+<h2>使用说明</h2>
+XML 插件解析 XML 文档，并从中构建一个可读取、修改和保存的文档对象模型（DOM）。XML 插件及其文档基于 <a href="http://www.sourceforge.net/projects/tinyxml">TinyXml</a> (2.5.3) 和  <a href="http://www.sourceforge.net/projects/tinyxpath">TinyXPath</a> (1.3.1).
+
+<a class="anchor" name="1" ></a>
+<h3>插件特性</h3>
+- 读取/修改 XML 文件。
+<br>- 支持 XPath 表达式。
+<br>- Unicode UTF-8 支持。
+<br>- 独立于 "MSXML.DLL"。
+<br>- 支持压缩和非压缩空格。
+<br>- 行和列跟踪。
+
+<a class="anchor" name="2" ></a>
+<h3>特殊字符</h3>
+<p>
+插件识别预定义的 "字符实体"，即特殊字符。具体包括：<p>
+<pre class="fragment">
+<div>	&amp;amp;	&amp;
+	&amp;lt;	&lt;
+	&amp;gt;	&gt;
+	&amp;quot;	"
+	&amp;apos;	'
+</div></pre><p>
+当读取 XML 文档时，将识别这些实体，并将它们翻译成它们的 UTF-8 编码。例如，具有以下 XML 的文本：<p>
+<pre class="fragment">
+<div>	Far &amp;amp; Away
+</div></pre><p>
+在查询时将具有值 "Far &amp; Away"，并且在写回到 XML 文件时将作为一个 ampersand（&amp;）写回。此外，任何字符都可以通过其 Unicode 代码点进行指定：语法(&amp; #xA0) " " 或(&amp; #160;) " " 都表示非断行空格字符。<p>
+<a class="anchor" name="3" ></a>
+<h3>XML文件示例</h3>
+<p>
+<pre class="fragment">
+<div>&lt;?xml version="1.0" encoding="utf-8" standalone="no"?&gt;
+&lt;!-- COMMENT1 --&gt;
+&lt;ELEMENT&gt;
+    &lt;ELEMENT2&gt;TEXT&lt;/ELEMENT2&gt;
+    &lt;!-- COMMENT2 --&gt;
+    &lt;empty_ELEMENT /&gt;
+    &lt;empty_ELEMENT2 NAME="VALUE" NAME2="VALUE2" /&gt;
+&lt;/ELEMENT&gt;
+</div></pre>
+
+<table cellpadding="0" cellspacing="10" border="0">
+  <tr>
+    <td valign="top" nowrap>
+         声明:
+         <br>根:
+         <br>节点:
+         <br>文本:
+         <br>注释:
+         <br>属性:
+         <br>子节点:
+         <br>父节点:
+    </td>
+    <td valign="top" nowrap>
+         &lt;?xml version="1.0" encoding="utf-8" standalone="no"?&gt;
+         <br>&lt;ELEMENT&gt;
+         <br>是 ELEMENT, TEXT, COMMENT, DECLARATION
+         <br>TEXT
+         <br>COMMENT1 和 COMMENT2
+         <br>NAME="VALUE" 与 NAME2="VALUE2"
+         <br>ELEMENT2 是 ELEMENT 的子节点;
+         <br>ELEMEN 是 ELEMENT2 的父节点
+    </td>
+  </tr>
+</table>
+
+
+<a class="anchor" name="4" ></a>
+<hr>
+<h2>插件函数</h2>
+<p>
+
+<a class="anchor" name="5"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap> ${xml::SetCondenseWhiteSpace} "[1|0]" </td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>将所有空白字符压缩为单个空格或不压缩。</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[1|0]"</td>
+        <td valign="top"><br>"1"
+                         <br>"0"</td>
+        <td valign="top"><br>-将所有空白字符压缩为单个空格（默认设置）。
+                         <br>-不压缩所有空白字符。</td>
+  </tr>
+</table>
+
+<a class="anchor" name="6"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SetEncoding} "[encoding]"</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>设置文档编码。</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[encoding]"</td>
+        <td valign="top"><br>""
+                         <br>"UTF8"
+                         <br>"LEGACY"</td>
+        <td valign="top"><br>-自动检测编码，使用 UTF-8 或 ANSI（默认）
+                         <br>-强制使用 Unicode UTF-8 编码
+                         <br>-强制使用 ANSI 编码</td>
+  </tr>
+</table>
+
+<a class="anchor" name="7"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::LoadFile} "[file]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>加载文档.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[file]"</td>
+        <td valign="top"><br>- 加载该文件</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误 </td>
+  </tr>
+</table>
+
+<a class="anchor" name="8"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SaveFile} "[file]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>保存文档.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[file]"</td>
+        <td valign="top"><br>- 保存此文件，如果为空，则保存当前加载的文件。</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="9"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::DeclarationVersion} $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回声明节点的 Version 属性的值.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>Version (例如 "1.0")</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="10"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::DeclarationEncoding} $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回声明节点的编码属性的值。</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>编码属性 (例如 "utf-8")</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="11"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::DeclarationStandalone} $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回声明节点的独立属性的值。</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>独立属性 (例如 "yes")</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="12"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::GetText} $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>便捷函数，方便访问当前元素内的文本.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>元素文本</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="13"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SetText} "[value]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>便捷函数，方便设置当前元素的文本.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[value]"</td>
+        <td valign="top"><br>- 要设置的文本</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="14"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SetCDATA} "[0|1]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>打开或关闭当前元素文本的 CDATA 表示.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[0|1]"</td>
+        <td valign="top"><br>"0" - 关闭（默认）
+                         <br>"1" - 打开</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="15"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::IsCDATA} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>查询是否使用 CDATA 区段表示此文本.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"1" 当前节点使用 CDATA
+                         <br>"0" 未使用 CDATA
+                         <br>"-1" 当前节点不是文本</td>
+  </tr>
+</table>
+
+<a class="anchor" name="16"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::GetNodeValue} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>获取当前节点的值</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>节点值</td>
+  </tr>
+</table>
+
+<a class="anchor" name="17"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SetNodeValue} "[value]"</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>设置当前节点的值.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[value]"</td>
+        <td valign="top"><br>- 设置此值</td>
+  </tr>
+</table>
+
+<a class="anchor" name="18"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::FindNextElement} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>搜索元素（递归），返回元素名称并跳转到该元素.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 由名称指定的元素，如果为空则返回所有找到的元素</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="19"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::FindCloseElement}</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>关闭由 <A href="Readme.html#18">xml::FindNextElement</A> 打开的搜索 </em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<br>
+<a class="anchor" name="20"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::RootElement} $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回根元素的名称并跳转到该元素.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>根元素的名称 (唯一的顶级元素)</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="21"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::FirstChildElement} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回第一个子元素名称并转到该子元素.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 查找由名称指定的第一个子元素，如果为空则返回第一个找到的元素</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="22"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::FirstChild} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回第一个子节点名称并转到该名称.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 查找由名称指定的第一个子节点，如果为空则返回第一个找到的节点</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="23"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::LastChild} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回最后一个子节点名称并转到该名称.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 查找由名称指定的最后一个子节点，如果为空则返回最先找到的</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="24"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::Parent} $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回父元素名称并转到该名称。</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="25"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::NoChildren} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>检查当前节点是否有子节点.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"1" 当前节点没有子节点
+                         <br>"0"当前节点有子节点</td>
+  </tr>
+</table>
+
+<a class="anchor" name="26"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::NextSiblingElement} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回下一个同级元素名称并转到它.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 查找由名称指定的下一个同级元素，如果为空则返回第一个找到的元素</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="27"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::NextSibling} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回下一个同级节点名称并转到它.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 查找由名称指定的下一个同级节点，如果为空则返回第一个找到的节点</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 出现错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="28"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::PreviousSibling} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回上一个同级节点名称并转到该名称.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 查找由名称指定的前一个同级节点，如果为空则返回第一个找到的节点</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="29"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::InsertAfterNode} "[handle]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>在当前节点后添加新节点并跳转到该新节点.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[handle]"</td>
+        <td valign="top"><br>- 插入此节点
+                         <br>(句柄由 <A href="Readme.html#42">xml::NodeHandle</A>, <A href="Readme.html#35">xml::CreateText</A>, <A href="Readme.html#36">xml::CreateNode</A>, <A href="Readme.html#37">xml::CloneNode</A> 返回)</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="30"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::InsertBeforeNode} "[handle]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>在当前节点之前添加新节点并转到该节点.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[handle]"</td>
+        <td valign="top"><br>- 插入该节点
+                         <br>(句柄由 <A href="Readme.html#42">xml::NodeHandle</A>, <A href="Readme.html#35">xml::CreateText</A>, <A href="Readme.html#36">xml::CreateNode</A>, <A href="Readme.html#37">xml::CloneNode</A> 返回)</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="31"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::InsertEndChild} "[handle]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>将新节点添加到当前节点子节点的末尾并转到它.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[handle]"</td>
+        <td valign="top"><br>- Insert this node
+                         <br>(句柄由 <A href="Readme.html#42">xml::NodeHandle</A>, <A href="Readme.html#35">xml::CreateText</A>, <A href="Readme.html#36">xml::CreateNode</A>, <A href="Readme.html#37">xml::CloneNode</A> 返回)</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="32"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::ReplaceNode} "[handle]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>替换当前节点.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[handle]"</td>
+        <td valign="top"><br>- 替换为此节点
+                         <br>(句柄由 <A href="Readme.html#42">xml::NodeHandle</A>, <A href="Readme.html#35">xml::CreateText</A>, <A href="Readme.html#36">xml::CreateNode</A>, <A href="Readme.html#37">xml::CloneNode</A> 返回)</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="33"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::RemoveNode} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>删除当前节点并转到父元素.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="34"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::RemoveAllChild}</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>删除当前节点的所有子节点 (使其为空).</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<br>
+<a class="anchor" name="35"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::CreateText} "[text]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>在内存中创建文本节点并返回其句柄.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[text]"</td>
+        <td valign="top"><br>- 在内存中创建此文本</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>文本节点的句柄
+                         <br>"0"  错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="36"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::CreateNode} "[text]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>在内存中创建节点并返回其句柄.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[text]"</td>
+        <td valign="top"><br>- 在内存中创建此节点</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>节点句柄
+                         <br>"0"  错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="37"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::CloneNode} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>将当前节点复制到内存并返回其句柄.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>节点句柄
+                         <br>"0"  错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="38"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::FreeNode} "[handle]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>从节点释放内存.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[handle]"</td>
+        <td valign="top"><br>- Free this node
+                         <br>(句柄由 <A href="Readme.html#35">xml::CreateText</A>, <A href="Readme.html#36">xml::CreateNode</A>, <A href="Readme.html#37">xml::CloneNode</A> 返回)</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="39"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::XPathString} "[expression]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>计算一个字符串 XPath 表达式.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[expression]"</td>
+        <td valign="top"><br>- XPath 表达式 (例如 "count(//@*)")</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>结果字符串</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="40"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::XPathNode} "[expression]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>计算节点 XPath 表达式并跳转到该节点.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[expression]"</td>
+        <td valign="top"><br>- XPath表达式 (例如 "/a/b")</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="41"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::XPathAttribute} "[expression]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>计算属性的 XPath 表达式并跳转到该属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[expression]"</td>
+        <td valign="top"><br>- XPath 属性 (例如 "/a/b/@attr")</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="42"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::NodeHandle} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回当前节点句柄.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>当前节点句柄
+                         <br>"0"  错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="43"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::GotoHandle} "[handle]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>转到指定的节点.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[handle]"</td>
+        <td valign="top"><br>- Go to this node
+                         <br>(句柄由 <A href="Readme.html#42">xml::NodeHandle</A> 返回)</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="44"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::ElementPath} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回当前元素路径.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>当前元素路径 (例如 "/a/b/c[3]/d")</td>    
+  </tr>
+</table>
+
+<a class="anchor" name="45"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::GotoPath} "[path]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>跳转到指定的路径.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[path]"</td>
+        <td valign="top"><br> 
+ - 跳转到此路径（例如，从根路径
+"/a/b[2]/c/d"，从当前元素 "a/b[2]/c/d"，使用最后一个元素 'b' "a/b[-1]/c/d"，使用任意最后一个元素
+"a/[-1]/c/d"，跳转到文档开头 ""）</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="46"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::NodeType} $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回当前节点的类型.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"ELEMENT" 
+                         <br>"COMMENT"
+                         <br>"DOCUMENT"
+                         <br>"TEXT"
+                         <br>"DECLARATION"
+                         <br>"UNKNOWN"</td>
+  </tr>
+</table>
+
+<a class="anchor" name="47"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::Coordinate} $var1 $var2 $var3</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回文本中的当前节点坐标.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>Row</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>Column</td>
+  </tr>
+  <tr>
+    <td valign="top">$var3</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="48"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::GetAttribute} "[name]" $var1 $var2</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回当前元素的属性值并转到该属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 查找由名称指定的属性</td>
+  </tr>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>属性值</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="49"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SetAttribute} "[name]" "[value]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>设置当前元素的属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 属性名称</td>
+  </tr>
+  <tr>
+    <td valign="top">"[value]"</td>
+        <td valign="top"><br>- 属性值</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="50"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::RemoveAttribute} "[name]" $var</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>删除当前元素具有指定名称的属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 属性名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="51"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::FirstAttribute} $var1 $var2 $var3</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回当前元素的第一个属性的名称和值，并跳转到该属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>属性名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>属性值</td>
+  </tr>
+  <tr>
+    <td valign="top">$var3</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="52"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::LastAttribute} $var1 $var2 $var3</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回当前元素的最后一个属性的名称和值，并跳转到该属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>属性名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>属性值</td>
+  </tr>
+  <tr>
+    <td valign="top">$var3</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="53"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::NextAttribute} $var1 $var2 $var3</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回下一个属性的名称和值并跳转到该属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>属性名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>属性值</td>
+  </tr>
+  <tr>
+    <td valign="top">$var3</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="54"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::PreviousAttribute} $var1 $var2 $var3</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回前一个属性的名称和值，并跳转到该属性.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>属性名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>属性值</td>
+  </tr>
+  <tr>
+    <td valign="top">$var3</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="55"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::CurrentAttribute} $var1 $var2 $var3</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>返回当前属性的名称和值.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">$var1</td>
+        <td valign="top"><br>属性名称</td>
+  </tr>
+  <tr>
+    <td valign="top">$var2</td>
+        <td valign="top"><br>属性值</td>
+  </tr>
+  <tr>
+    <td valign="top">$var3</td>
+        <td valign="top"><br>"0" 成功
+                         <br>"-1" 错误</td>
+  </tr>
+</table>
+
+<a class="anchor" name="56"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SetAttributeName} "[name]"</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>设置当前属性的名称.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[name]"</td>
+        <td valign="top"><br>- 属性名称</td>
+  </tr>
+</table>
+<footer>
+        <p>文档翻译：<A href="https://www.cnblogs.com/NSIS">水晶石 2023.11.26</A></p></FOOTER>
+<a class="anchor" name="57"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::SetAttributeValue} "[value]"</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>设置当前属性的值.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=10 cellpadding=0 border=0>
+  <tr>
+    <td valign="top">"[value]"</td>
+        <td valign="top"><br>- 属性值</td>
+  </tr>
+</table>
+
+<a class="anchor" name="58"></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td class="md" valign="top" nowrap>${xml::Unload}</td></tr>
+        <tr><td class="mdname1" valign="top" nowrap><em>卸载插件.</em></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+
+<hr>
+</body>
+</html>

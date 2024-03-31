@@ -1,0 +1,149 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML lang="zh-cn"><head>
+<title></title>
+
+<META content="text/html; charset=UTF-8" http-equiv=Content-Type>
+<META name=GENERATOR content="MSHTML 11.00.10570.1001"></HEAD>
+<BODY><div style="BORDER-TOP: black 1px solid; BORDER-RIGHT: black 1px solid; WIDTH: 300px; BORDER-BOTTOM: black 1px solid; PADDING-BOTTOM: 10px; PADDING-TOP: 10px; PADDING-LEFT: 10px; BORDER-LEFT: black 1px solid; PADDING-RIGHT: 10px">
+<h2>目录</h2>
+<UL>
+<LI>1 链接
+<LI>2 描述 
+<LI>3 命令
+<UL>
+<LI>3.1 get
+<LI>3.2 post
+<LI>3.3 head
+<LI>3.4 put</LI> 
+</UL>
+<LI>4 示例 
+<LI>5 致谢</LI> 
+</UL>
+</div>
+
+<h2>链接</h2> 
+<p>下载: <a href="http://nsis.sourceforge.net/Inetc_plug-in">http://nsis.sourceforge.net/Inetc_plug-in</a> 
+<p>文档翻译与制作: <a href="https://www.cnblogs.com/NSIS/">水晶石</a> 
+<h2>描述</h2>
+这是一个用于下载和上传文件的网络客户端插件，基于InetLoad插件开发，使用MS WinInet API实现，支持http/https和ftp协议。该插件比NSISdl插件支持更好的代理。命令行可以包含多个URL/文件对进行传输。如果脚本中未设置服务器或代理登录密码，则显示IE风格的身份验证对话框（除非在静默模式下）。插件支持3种“传输进行中”显示模式：
+<UL>
+<LI>旧的NSISdl样式- 在INSTFILES页面上添加附加嵌入式进度条和文本；
+<LI>弹出窗口模式，详细信息；
+<LI>横幅模式，简单的弹出窗口</LI>      
+</UL>
+插件能够识别NSIS安装程序的静默模式，并在这种情况下隐藏任何输出（该功能需要NSIS 2.03或更高版本）。程序实现了简单的断点续传功能- 在短暂暂停后从当前位置重新连接主机并下载。虽然该程序依赖于IE设置，但它会将当前IE模式更改为在线模式。在“旧样式”模式下，NSISdl代码片段用于显示进度条。对于ftp，使用“host/path”表示相对于用户主目录的文件位置，使用“host//path”表示绝对路径。
+
+<h2>命令</h2>
+
+插件DLL函数（入口点）：get，post，head，put
+
+<h3>get</h3>
+
+<i>inetc::get [/PROXY IP:PORT] [/USERNAME PROXY_LOGIN /PASSWORD PROXY_PASSWD] [/NOCOOKIES] 
+ [/NOPROXY] [/NOCANCEL] [/CONNECTTIMEOUT TO_SEC] [/RECEIVETIMEOUT TO_SEC] [/SILENT] [/WEAKSECURITY]
+ [/CAPTION TEXT] [/NOCOOKIES] [/RESUME RETRY_QUESTION] [/POPUP HOST_ALIAS | /BANNER TEXT] 
+ [/CANCELTEXT CANCEL_TEXT] [/QUESTION CANCEL_QUESTION] [/USERAGENT USER_AGENT_TEXT] 
+ [/HEADER HEADER_TEXT] [/TRANSLATE LANG_PARAMS] [/TOSTACK | /TOSTACKCONV]
+ URL1 local_file1 [URL2 local_file2 [...]] [/END]</i>
+<p>如果成功，此调用将返回“OK”字符串；如果失败，则返回错误描述字符串（请参见包含的InetLoad.cpp文件以获取完整的状态字符串集）。包中包含使用和结果处理示例。
+<p>/PROXY - 
+覆盖当前代理设置，在大多数情况下不需要。默认情况下将使用IE设置。
+<p>/USERNAME - 
+代理用户名（仅限HTTP）。
+<p>/PASSWORD - 
+代理密码（仅限HTTP）。对于服务器（HTTP / FTP）身份验证，可以使用URL编码的名称和密码，例如http://username：password@nsis.sourceforge.net。
+<p>/NOPROXY - 
+禁用此连接的代理设置（如果有）
+<p>/NOCANCEL - 
+防止用户中断下载（锁定Esc，Alt-F4，取消处理，删除sysmenu）
+<p>/CONNECTTIMEOUT - 
+设置INTERNET_OPTION_CONNECT_TIMEOUT，秒，默认值为IE当前参数值。
+<p>/RECEIVETIMEOUT - 
+设置INTERNET_OPTION_RECEIVE_TIMEOUT，秒，默认值为IE当前参数值。
+<p>/SILENT - 
+关键字隐藏插件的输出（弹出对话框和嵌入式进度条）。如果在脚本中定义了“SilentInstall silent”模式（NSIS 2.03或更高版本），则不需要此项。
+<p>/WEAKSECURITY - 
+忽略未知和已撤销的证书
+<p>/RESUME - 
+在无限等待/传输错误时，不是退出，而是首先显示带有“恢复下载”的消息框。对于拨号连接和大文件非常有用-允许用户恢复连接并恢复下载。默认值为“您的互联网连接似乎已断开！\n请重新连接并单击“重试”以恢复下载......”。
+<p>/CAPTION - 
+为/BANNER模式定义标题文本，为/POPUP模式定义标题前缀（-左侧）并为RESUME MessageBox定义标题。如果未设置或为空，则默认为“InetLoad插件”。最大127个字符。
+<p>/POPUP - 
+此模式显示详细的下载对话框，而不是嵌入式进度条。在.onInit函数中也很有用（即不在区段中）。如果HOST_ALIAS不是“”，则文本将替换对话框中的URL-这允许隐藏真实的URL（包括密码）。
+<p>/BANNER - 
+显示简单的弹出对话框（MSI横幅模式），并设置对话框文本（最多使用$\n$分成3行）。
+<p>/CANCELTEXT - 
+NSISdl模式下取消按钮的文本。默认为NSIS对话框取消按钮文本（当前语言）。
+<p>/QUESTION - 
+如果用户尝试取消下载，则为可选的MessageBox文本。如果使用/QUESTION ""，则将替换默认值"Are you sure that you want to stop download?"。
+<p>/USERAGENT - 
+UserAgent HTTP请求头值。默认为"NSIS_Inetc (Mozilla)"。最大256个字符。
+<p>/HEADER - 
+添加或替换HTTP请求头。常见的HEADER_TEXT格式为"header: value"。
+<p>/NOCOOKIES - 
+从HTTP请求中删除cookie。
+<p>/TOSTACK - 
+输出post/get/head响应到NSIS堆栈而不是文件（指定空字符串用于local_file1，local_file2等）。
+<p>/TOSTACKCONV - 
+输出post/get/head响应到NSIS堆栈，并转换字符编码:<br>
+对于Unicode插件版本，ASCII-&gt;Unicode<br>
+对于ASCII插件版本，Unicode-&gt;ASCII。
+<p>/END - 
+允许限制插件堆栈读取（可选，如果在堆栈中存储其他变量，则必需）。. 
+<p>/TRANSLATE - 
+允许在POPUP或NSISdl模式下翻译插件文本。两种情况下都有8个参数。<br>
+
+NSISdl模式参数：<br>
+  /TRANSLATE downloading connecting second minute hour plural progress remaining<br>
+带默认值:<br>
+  "Downloading %s" "Connecting ..." second minute hour s "%dkB (%d%%) of %dkB @ %d.%01dkB/s" "(%d %s%s remaining)"<br>
+
+POPUP模式参数：:<br>
+  /TRANSLATE url downloading connecting file_name received file_size remaining_time total_time<br>
+带默认值:<br>
+  URL Downloading Connecting "File Name" Received "File Size" "Remaining Time" "Total Time"<br>
+
+<h3>post</h3>
+
+<i>inetc::post TEXT2POST [/FILE] [/PROXY IP:PORT] [/NOPROXY] [/NOCANCEL]
+ [/USERNAME PROXY_LOGIN /PASSWORD PROXY_PASSWD] [/TIMEOUT INT_MS] [/SILENT] [/WEAKSECURITY]
+ [/CAPTION TEXT] [/POPUP | /BANNER TEXT] [/CANCELTEXT CANCEL_TEXT] 
+ [/USERAGENT USER_AGENT_TEXT] [/TRANSLATE LANG_PARAMS] [/TOSTACK | /TOSTACKCONV]
+ URL1 local_file1 [URL2 local_file2 [...]] [/END]</i>
+<p>设置POST http模式，并定义要在POST（仅限http）中使用的文本字符串。禁用自动重新获取。不使用字符替换（如%20等）。如果在命令行中出现/FILE，则TEXT2POST是要发送到POST请求中的文件名。还将添加'Filename:'标头到HTTP标头中。
+
+<h3>head</h3>
+
+与get相同，但仅请求http标头。将原始标头写入文件。
+
+<h3>put</h3>
+
+<i>inetc::put [/PROXY IP:PORT] [/USERNAME PROXY_LOGIN /PASSWORD PROXY_PASSWD] [/NOPROXY]
+ [/NOCANCEL] [/TIMEOUT INT_MS] [/SILENT] [/WEAKSECURITY] [/CAPTION TEXT] [/POPUP | /BANNER TEXT] 
+ [/CANCELTEXT CANCEL_TEXT] [/USERAGENT USER_AGENT_TEXT] 
+ [/TRANSLATE LANG_PARAMS] URL1 local_file1 [URL2 local_file2 [...]] [/END]</i>
+<p>如果适用，则返回值和参数与先前的入口点相同。
+
+<h2>示例 </h2>
+<pre>  inetc::put "http://dl.zvuki.ru/6306/mp3/12.mp3" "$EXEDIR\12.mp3" \
+     "ftp://dl.zvuki.ru/6306/mp3/11.mp3" "$EXEDIR\11.mp3"
+  Pop $0
+  inetc::put /BANNER "Cameron Diaz upload in progress..." \
+    "http://www.dreamgirlswallpaper.co.uk/fiveyearsonline/wallpaper/Cameron_Diaz/camerond09big.JPG" \
+    "$EXEDIR\cd.jpg"
+  Pop $0
+  StrCmp $0 "OK" dlok
+  MessageBox MB_OK|MB_ICONEXCLAMATION "http upload Error, click OK to abort installation" /SD IDOK
+  Abort
+dlok:
+  ...</pre>
+
+<h2>致谢</h2> 
+<p>非常感谢 Backland 提供了修复 NSISdl 模式崩溃的简单方法，添加了“居中父级”函数，提供了一些不错的设计思路，并花费了大量时间测试该插件。</p>
+<br>
+<p>v1.0.4.4 由 Stuart 'Afrow UK' Welch 提供</p>
+<p>v1.0.5.0 到 v1.0.5.2 由 anders_k 提供</p>
+<br>
+<p>有关更改，请参见 Contrib\inetc\inetc.cpp。</p></BODY>
+
+</HTML>

@@ -1,0 +1,424 @@
+
+NSxfer - NSIS WinINet 插件
+https://github.com/negrutiu/nsis-nsxfer
+marius.negrutiu@protonmail.com
+_________________________________________________________________________________________________
+
+特点：
+
+  - 多线程：并行下载多个文件
+  - 异步：立即启动下载，稍后检查其状态
+  - 主动优化功能：多次尝试连接，多次尝试重新连接，恢复中断的传输等
+  - NSIS感知：从任何安装阶段（从.onInit，从节，从自定义页面，静默安装程序等）下载文件
+  - 信息丰富：每个下载可用大量有用信息（大小，速度，HTTP状态，HTTP头等）
+  - 支持所有相关的HTTP方法（GET，POST，HEAD等）
+  - 支持自定义HTTP头和数据
+  - 支持代理服务器（受身份验证和开放）
+  - 支持大于4GB的文件
+  - 可以将远程内容下载到RAM而不是文件中
+  - 等等...
+
+示例：
+  # 快速传输，单个文件
+  NSxfer::Transfer /URL "http://MyServer/MyFile" /LOCAL "$TEMP\MyFile" /MODE Page /ABORT "中止标题" "您确定吗？" /END
+  Pop $0 ; 状态文本（成功为“OK”）
+  DetailPrint "状态: $0"
+
+  # 并行传输，多个文件
+  ; 启动下载
+  NSxfer::Request /URL "http://MyServer1/MyFile1" /LOCAL "$TEMP\MyFile1" /END
+  Pop $1 ; 请求ID1
+  NSxfer::Request /URL "http://MyServer2/MyFile2" /LOCAL "$TEMP\MyFile2" /END
+  Pop $2 ; 请求ID2
+  NSxfer::Request /URL "http://MyServer3/MyFile3" /LOCAL "$TEMP\MyFile3" /END
+  Pop $3 ; 请求ID3
+
+  ; ...做其他有用的事情...
+	
+  ; 等待所有下载完成
+  NSxfer::Wait /MODE Page /ABORT "中止" "您确定吗？" /END
+
+  ; 查询状态（1）
+  NSxfer::Query /ID $1 /ERRORCODE /END
+  Pop $0 ; 错误代码（HTTP状态200-299表示成功）
+  DetailPrint "状态1：$0"
+  ; 查询状态（2）
+  NSxfer::Query /ID $2 /ERRORCODE /END
+  Pop $0 ; 错误代码（HTTP状态200-299表示成功）
+  DetailPrint "状态2：$0"
+  ; 查询状态（3）
+  NSxfer::Query /ID $3 /ERRORCODE /END
+  Pop $0 ; 错误代码（HTTP状态200-299表示成功）
+  DetailPrint "状态3：$0"
+
+
+	; ...你知道的...
+_________________________________________________________________________________________________
+
+  NSxfer::Transfer	[/PRIORITY prio] [/DEPEND id]
+					[/METHOD GET|POST]
+					/URL url
+					[/LOCAL file|MEMORY|NONE]
+					[/HEADERS hdr]
+					[/DATA data | /DATAFILE file]
+					[/TIMEOUTCONNECT msec] [/TIMEOUTRECONNECT msec]
+					[/OPTCONNECTRETRIES count] [/OPTCONNECTTIMEOUT msec] [/OPTRECEIVETIMEOUT msec] [/OPTSENDTIMEOUT msec]
+					[/PROXY server] [/PROXYUSER user] [/PROXYPASS pass]
+					[/REFERER url]
+					[/INTERNETFLAGS flags] [/SECURITYFLAGS flags]
+					[/MODE SILENT|POPUP|PAGE]
+					[/TITLEHWND Wnd] [/STATUSHWND Wnd] [/PROGRESSHWND Wnd]
+					[/TITLETEXT Text MultiText] [/STATUSTEXT Text Multitext]
+					[/ABORT Title Message]
+					/END
+
+  备注:
+  进行（单个）HTTP请求，等待其完成并返回状态码。如果您只需要传输一个文件，则建议使用此函数。
+
+  要并行传输多个文件，必须使用更低级别的函数（Request（1）+ Request（2）+ ... + Request（n）+ [...] + Wait（）+ Query（））
+
+  参数:
+ [...]                         | 查看“请求”参数！
+ [...]                         | 查看“等待”参数！
+ /END                         | 必须结束参数列表，否则NSIS堆栈将被清空...
+
+ 返回:
+ [Stack] 对于成功的传输，“OK”，否则为错误字符串（HTTP或Win32）
+------------------------------------------------------------------------------------------------------------------------------------
+ NSxfer::Request [/PRIORITY prio] [/DEPEND id]
+[/METHOD GET|POST]
+/URL url
+[/LOCAL file|MEMORY|NONE]
+[/HEADERS hdr]
+[/DATA data | /DATAFILE file]
+[/TIMEOUTCONNECT msec] [/TIMEOUTRECONNECT msec]
+[/OPTCONNECTRETRIES count] [/OPTCONNECTTIMEOUT msec] [/OPTRECEIVETIMEOUT msec] [/OPTSENDTIMEOUT msec]
+[/PROXY server] [/PROXYUSER user] [/PROXYPASS pass]
+[/REFERER url]
+[/INTERNETFLAGS flags] [/SECURITYFLAGS flags]
+/END
+
+注释：
+将传输请求添加到队列中。
+一旦工作线程可用，传输将立即开始。
+此命令不会显示任何GUI。
+
+参数：
+/PRIORITY | 队列中的优先级。较低的值表示较高的优先级（默认值：1000）
+/DEPEND id | 该请求依赖的另一个请求。新请求将在队列中等待，直到另一个请求完成为止（默认值：0，没有依赖关系）
+/METHOD GET|POST|HEAD|... | HTTP方法（默认值：GET）
+/URL url | HTTP或HTTPS的网址...
+/LOCAL file|MEMORY|NONE | 本地目的地。可以是本地文件、内存缓冲区或无（无：发出HTTP请求，但不传输内容）（默认值：NONE）
+/HEADERS hdr | 附加的HTTP标头，由CRLF（\r\n）分隔
+/DATA data | 作为HTTP请求的一部分发送的附加数据
+/DATAFILE file | 作为HTTP请求的一部分发送的附加数据（从指定的文件中读取）
+/TIMEOUTCONNECT msec | 尝试连接“msec”毫秒（默认值：0，无重试）
+/TIMEOUTRECONNECT msec | 如果在下载时连接中断，则尝试重新连接“msec”毫秒（默认值：0，无重新连接）
+/OPTCONNECTRETRIES count | InternetSetOption（Session，INTERNET_OPTION_CONNECT_RETRIES）。仅适用于具有多个IP的远程主机！
+/OPTCONNECTTIMEOUT msec | InternetSetOption（Session，INTERNET_OPTION_CONNECT_TIMEOUT）
+/OPTRECEIVETIMEOUT msec | InternetSetOption（Request，INTERNET_OPTION_RECEIVE_TIMEOUT）
+/OPTSENDTIMEOUT msec | InternetSetOption（Request，INTERNET_OPTION_SEND_TIMEOUT）
+/PROXY server | CERN类型的代理（例如：“http=http://my_proxy:my_port”）。如果安装了Internet Explorer，支持SOCKS代理。
+/PROXYUSER user | 针对经过身份验证的代理的可选用户名
+/PROXYPASS pass | 针对经过身份验证的代理的可选密码
+/REFERER url | 可选的引用网址，传递给InternetOpenRequest
+/INTERNETFLAGS 标志位 | 传递给 InternetOpenRequest 的 INTERNET_FLAG_XXX 组合（默认值：0x84082200，INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_IGNORE_CERT_DATE_INVALID|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD）
+/SECURITYFLAGS 标志位 | 传递给 InternetSetOption(INTERNET_OPTION_SECURITY_FLAGS) 的 SECURITY_FLAG_XXX 组合（默认值：0x2080，SECURITY_FLAG_IGNORE_REVOCATION|SECURITY_FLAG_IGNORE_CERT_DATE_INVALID）
+/END | 必须包含该参数以结束参数列表，否则 NSIS 堆栈将被清空...
+
+返回值：
+[Stack] 唯一的请求 ID，稍后需要使用该 ID 查询请求状态
+
+示例：
+
+; 下载文件到本地
+NSxfer::Request /URL "http://live.sysinternals.com/Files/SysinternalsSuite.zip" /LOCAL "$EXEDIR\SysinternalsSuite.zip" /TIMEOUTCONNECT 60000 /TIMEOUTRECONNECT 300000 /END
+Pop $0 ; 请求 ID
+
+; 下载文件到内存，最高优先级
+NSxfer::Request /PRIORITY 1 /URL "http://live.sysinternals.com/Files/SysinternalsSuite.zip" /LOCAL MEMORY /END
+Pop $0 ; 请求 ID
+
+; 发送 HTTP 请求但不下载内容
+NSxfer::Request /URL "http://mydomain.com:800?param1=va1&param2=val2" /LOCAL NONE /END
+Pop $0 ; 请求 ID
+
+; 提交表单
+NSxfer::Request /METHOD POST /URL "http://httpbin.org/post" /LOCAL "Post.txt" /HEADERS "Content-Type: application/x-www-form-urlencoded" /DATA "user=MY+NAME&pass=MY+PASSWORD" /END
+Pop R0 ; 请求 ID
+_________________________________________________________________________________________________
+
+NSxfer::Wait [/ID id] [/PRIORITY prio] ; 选择参数
+   [/MODE SILENT|POPUP|PAGE]
+   [/TITLEHWND Wnd] [/STATUSHWND Wnd] [/PROGRESSHWND Wnd]
+   [/TITLETEXT Text MultiText] [/STATUSTEXT Text Multitext]
+   [/ABORT Title Message]
+   /END
+
+备注:
+
+等待一个或多个传输完成，可以通过ID或PRIORITY进行选择。
+等待模式：
+  - SILENT					      | 不显示GUI，当传输完成时，调用返回
+  - POPUP						| 在弹出窗口上显示进度
+  - PAGE						| 在安装程序页面（InstFiles或自定义）上显示进度。仅在安装程序可见时可用。
+
+SILENT和POPUP模式始终可用，包括静默安装程序。
+PAGE模式要求安装程序可见且当前有页面处于活动状态。在静默安装程序中，PAGE模式会自动转换为SILENT模式。
+
+所有显示的文本都可以自定义。
+插件将根据等待一个还是多个传输来选择“Text”和“MultiText”。
+所有文本都可以包含关键字，在运行时自动替换。
+
+传输特定关键字：
+
+{ID}						| NSxfer::Request返回的请求ID
+{STATUS}					| "Waiting"、“Downloading”或“Completed”（仅英语）
+{WININETSTATUS}				| InternetCallback报告的最后状态（http://msdn.microsoft.com/EN-US/library/windows/desktop/aa385121(v=vs.85).aspx）
+{METHOD}					| 使用的HTTP方法（GET、POST、HEAD等）
+{URL}						| 完整URI
+{IP}						| 服务器的IP地址，或一个空字符串
+{PROXY}						| 代理服务器，或一个空字符串
+{LOCAL}						| 本地目标（文件路径|内存|无）
+{LOCALFILEDIR}				| 从本地路径中提取的文件目录（无名称）
+{LOCALFILENAME}				| 从本地路径中提取的文件名（无路径）
+{FILESIZE}					| 远程内容长度，格式化显示（例如：“1.3 GB”）
+{FILESIZEBYTES}				| 远程内容长度（可以超过4GB（32位边界））
+{RECVSIZE}					| 接收的字节数，格式化显示（例如：“1.3 GB”）
+{RECVSIZEBYTES}				| 接收的字节数
+{PERCENT}					| 百分比（0-100）
+{SPEED}						| 传输速度（格式化显示，例如：“1.4 MB/s”）
+{SPEEDBYTES}				| 传输速度（字节/秒）
+{TIMESTART}					| 传输开始时的时间戳（例如2014/10/18 08:24）
+{TIMEELAPSED}				| 自传输开始以来的时间
+	{TIMEELAPSED} | 自传输开始以来经过的时间（例如：3分钟2秒）
+{TIMEREMAINING} | 预计到传输完成还需的时间（例如：10分钟35秒）
+
+全局关键字：
+
+{TOTALCOUNT} | 请求的总数（等待 + 下载 + 完成）
+{TOTALWAITING} | 等待请求的数量
+{TOTALACTIVE} | 正在下载 + 完成的请求数量
+{TOTALDOWNLOADING} | 进行中的请求数量
+{TOTALCOMPLETED} | 已完成请求的数量
+{TOTALRECVSIZE} | 已接收的字节数，格式化后的（例如：“1.3 GB”）
+{TOTALRECVSIZEBYTES} | 已接收的字节数
+{TOTALSPEED} | 正在进行中的传输的合并速度（格式化后，例如：“1.4 MB/s”）
+{TOTALSPEEDBYTES} | 正在进行中的传输的合并速度（字节/秒）
+{TOTALTHREADS} | 工作线程数
+{ORIGINALTITLE} | 原始的标题文本
+{ORIGINALSTATUS} | 原始的状态文本
+{PLUGINNAME} | 插件名称（“NSxfer”）
+{PLUGINVERSION} | 插件版本
+{ANIMLINE} | 经典的 |/- 动画
+{ANIMDOTS} | 经典的 ./../... 动画
+
+参数：
+
+/ID id | 等待特定的传输。如果未指定，则等待所有传输
+/PRIORITY prio | 等待具有特定优先级的传输。如果未指定，则等待所有传输
+/MODE | 等待模式
+/TITLEHWND | 自定义控件以显示标题文本
+/STATUSHWND | 自定义控件以显示状态文本
+/PROGRESSHWND | 自定义进度控件
+/TITLETEXT 文本 多行文本 | 标题文本。“文本”在等待单个传输时显示，而“多行文本”在等待多个传输时显示。两个文本都可以包含关键字
+/STATUSTEXT 文本 多行文本 | 状态文本。“文本”在等待单个传输时显示，而“多行文本”在等待多个传输时显示。两个文本都可以包含关键字
+/ABORT 标题 消息 | 传输可以被中止。如果消息不为空，将显示确认框（是/否）。如果消息为空，则传输会安静地中止。默认情况下，中止被禁用
+/END | 必须结束参数列表，否则 NSIS 栈将被清空...
+
+返回：
+
+[堆栈] 结果代码。忽略它！
+
+示例：
+
+; 等待优先级为 2000 的请求（弹出模式）
+NSxfer::Wait
+		/PRIORITY 2000 /MODE POPUP \
+		/STATUSTEXT \
+			"Received {RECVSIZE}/{FILESIZE} @ {SPEED}, ETA: {TIMEREMAINING}$\n{URL}" \
+			"Downloading {TOTALACTIVE}/{TOTALCOUNT} files. Received {TOTALRECVSIZE} @ {TOTALSPEED}" \
+		/TITLETEXT \
+			"{PERCENT}% - Downloading..." \
+			"Downloading {TOTALCOUNT} files..." \
+		/ABORT "Abort" "Are your sure?"
+	Pop $0
+_________________________________________________________________________________________________
+
+NSxfer::Enumerate	[/STATUS waiting|downloading|completed]
+					[/PRIORITY prio]
+					/END
+
+备注：
+枚举队列中的传输请求（通过状态和/或优先级）。
+请注意，已完成的请求仍然在队列中。可以使用 /STATUS 过滤它们。
+
+参数：
+/STATUS | 枚举具有特定状态（等待、下载、已完成）的请求。如果未指定，将枚举所有请求。
+/PRIORITY prio | 枚举具有特定优先级的请求。如果未指定，将枚举所有请求。
+/END | 必须结束参数列表，否则NSIS栈将被清空...
+
+返回：
+[栈] 请求计数（N）
+[栈] ID1
+[栈] ID2
+[栈] ...
+[栈] IDn
+
+示例：
+; 枚举所有已完成的请求
+NSxfer::Enumerate /STATUS "Completed" /END
+Pop $1 ; Count
+${For} $0 1 $1
+Pop $2
+DetailPrint "[$0] Request ID = $2"
+${Next}
+_________________________________________________________________________________________________
+
+NSxfer::Query	/ID id
+				[/PRIORITY] [/DEPEND]
+				[/STATUS] [/WININETSTATUS]
+				[/METHOD] [/URL] [/IP] [/PROXY] [/LOCAL]
+				[/SENTHEADERS] [/RECVHEADERS]
+				[/FILESIZE] [/RECVSIZE] [/PERCENT] [/SPEEDBYTES] [/SPEED]
+				[/CONTENT] [/DATA]
+				[/TIMEWAITING] [/TIMEDOWNLOADING]
+				[/CONNECTIONDROPS]
+				[/ERRORCODE] [/ERRORTEXT]
+				/END
+
+备注:
+查询关于一个特定的传输请求的信息。
+
+参数：
+
+/ID id	NSxfer::Request返回的请求ID
+/PRIORITY	请求优先级
+/DEPEND	依赖ID
+/STATUS	请求状态（正在下载
+/WININETSTATUS	InternetCallback报告的最后一个状态（http://msdn.microsoft.com/EN-US/library/windows/desktop/aa385121(v=vs.85).aspx）
+/METHOD	使用的HTTP方法（GET、POST、HEAD等）
+/URL	完整的URL
+/IP	服务器的IP地址或空字符串
+/PROXY	代理服务器或空字符串
+/LOCAL	本地目的地（文件
+/SENTHEADERS	发送到服务器的原始HTTP头部
+/RECVHEADERS	从服务器接收的原始HTTP头部
+/FILESIZE	远程内容长度（可能超过4GB（32位边界））
+/RECVSIZE	到目前为止接收的字节数
+/PERCENT	百分比（0-100）
+/SPEED	传输速度（漂亮格式化，例如："1.4 MB/s"）
+/SPEEDBYTES	传输速度（字节/秒）
+/CONTENT	检索远程内容（最大NSIS_MAX_STRLEN）下载到内存。非可打印字符将被替换为'.'。
+/DATA	检索发送到服务器的数据（最大NSIS_MAX_STRLEN）。非可打印字符将被替换为'.'。
+/TIMEWAITING	在队列中等待的时间（毫秒）
+/TIMEDOWNLOADING	传输花费的时间（毫秒）
+/CONNECTIONDROPS	在传输期间连接断开的次数
+/ERRORCODE	Win32错误代码或HTTP状态代码
+/ERRORTEXT	错误说明
+/END	必须结束参数列表，否则NSIS堆栈将被清空...
+返回：
+每个参数的值，按相同的顺序
+[Stack] Value1
+[Stack] Value2
+[Stack] ...
+[Stack] ValueN
+
+示例：
+NSxfer::Query /ID $varID /STATUS /URL /PERCENT /SPEED /END
+Pop $0 ;状态
+Pop $1 ;URL
+Pop $2 ;百分比
+Pop $3 ;速度
+DetailPrint "Status:$0, URL:$1, Percent:$2, Speed:$3"
+
+NSxfer::Set [/ID id] [/PRIORITY prio] ;选择参数
+[/SETPRIORITY prio]
+[/SETDEPEND id]
+[/ABORT]
+[/REMOVE]
+/END
+
+备注：
+修改一个或多个传输请求（按ID或PRIORITY）
+当中止文件传输时，接收到的内容不会被删除（从磁盘上）。稍后可以恢复传输。
+调用者负责清理未完成/中止的下载。
+
+参数：
+/ID id | 修改特定请求。如果未指定，将修改所有请求
+/PRIORITY prio | 修改具有特定优先级的请求。如果未指定，将修改所有请求
+/SETPRIORITY prio | 新的优先级
+	/SETDEPEND id | 新依赖项
+/ABORT | 中止指定的传输
+/REMOVE | 从队列中删除指定的传输
+/END | 必须结束参数列表，否则NSIS堆栈将被清空...
+
+返回：
+[堆栈] 返回码。忽略它！
+
+示例：
+; 中止所有传输
+NSxfer::Set /ABORT /END
+
+; 中止所有优先级为3000的传输
+NSxfer::Set /PRIORITY 3000 /ABORT /END
+
+; 中止一个特定的传输
+NSxfer::Set /ID 666 /ABORT /END
+
+; 将优先级3000修改为5000
+NSxfer::Set /PRIORITY 3000 /SETPRIORITY 5000 /END
+
+; 修改一个请求的依赖项
+NSxfer::Set /ID 666 /SETDEPEND 1 /END
+
+; 通过将其设置为0来删除一个请求的依赖项
+NSxfer::Set /ID 666 /SETDEPEND 0 /END
+
+; 中止所有并清空队列
+NSxfer::Set /REMOVE /END
+
+NSxfer::QueryGlobal [/TOTALCOUNT] [/TOTALWAITING] [/TOTALDOWNLOADING] [/TOTALCOMPLETED]
+[/TOTALSPEED] [/TOTALSPEEDBYTES]
+[/TOTALTHREADS]
+[/PLUGINNAME] [/PLUGINVERSION]
+[/USERAGENT]
+/END
+
+备注：
+查询全局信息。
+
+参数：
+/TOTALCOUNT | 请求的总数（等待中+下载中+已完成）
+/TOTALWAITING | 等待中的请求数
+/TOTALDOWNLOADING | 正在进行的请求数
+/TOTALCOMPLETED | 已完成的请求数
+/TOTALRECVSIZE | 接收的字节数，格式化（例如："1.3 GB"）
+/TOTALRECVSIZEBYTES | 接收的字节数
+/TOTALSPEED | 正在进行的请求的组合速度（格式化，例如："1.4 MB/s"）
+/TOTALSPEEDBYTES | 正在进行的请求的组合速度（字节/秒）
+/TOTALTHREADS | 工作线程数
+/PLUGINNAME | “NSxfer”
+/PLUGINVERSION | 版本字符串，例如“1.2014.11.16”
+/USERAGENT | 用户代理（例如：“Mozilla/5.0（Windows；WOW64）xfer/1.0”）
+/END | 必须结束参数列表，否则NSIS堆栈将被清空...
+
+返回：
+
+每个参数的值，按相同顺序
+[堆栈] 值1
+[堆栈] 值2
+[堆栈] ...
+[堆栈] 值N
+
+示例：
+
+NSxfer::QueryGlobal /TOTALCOUNT /TOTALCOMPLETED /TOTALDOWNLOADING /TOTALSPEED /TOTALTHREADS /END
+Pop $R0 ; 总数
+Pop $R1 ; 已完成数
+Pop  $R2 ; 下载中数
+Pop  $R3 ; 速度
+Pop  $R4 ; 工作线程
+DetailPrint "正在使用 $R4 个工作线程，在 $R3 的速度下传输 $R1+$R2/$R0 个文件。"
+_________________________________________________________________________________________________
+

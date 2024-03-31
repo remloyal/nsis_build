@@ -1,0 +1,21 @@
+Metadl Changelog
+by Hampus Wessman
+
+Version 1.1.0 (2007-10-25)
+* Fixed a few bugs. Don't use earlier versions of the plugin, because they might crash! It seems to be very stable now, on the other hand.
+
+Version 1.0.2 (2007-08-31)
+* Changed the makefile, so that metadl and all its dependencies can be cross compiled in Ubuntu. Right now this is the only way to compile the plugin, without making any adjustments to the buildscripts.
+* Now using a larger buffer for file writing.
+
+Version 1.0.1 (2007-05-30)
+* Made some minor adjustments to the makefile and test script.
+
+Version 1.0.0 (2007-05-24)
+* Added support for chunk checksum verification, both when resuming a download and while downloading.
+* Now all the planned features are implemented and seems to work fine!
+
+Version 0.3.0 (2007-05-24)
+* Added better error checking (now it checks everything that can go wrong).
+* Added chunk checksum parsing to the metalink code.
+* Added support for local files and a file check mode (/CHECK, see readme).

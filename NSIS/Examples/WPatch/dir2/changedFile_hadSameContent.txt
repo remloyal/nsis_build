@@ -1,0 +1,2 @@
+This has been changed from the same initial content as changedFile.txt
+This is only possible to patch if precise mode is enabled

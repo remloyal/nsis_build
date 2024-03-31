@@ -1,0 +1,79 @@
+Internet Explorer Functions:
+----------------------------
+
+This plugin implements a few functions that can be used to control Internet Explorer. 
+I created this to have the ability to activate plugin toolbars for Internet Explorer, 
+so those are all the functions I implemented.
+
+There are two versions of the dll, both work exactly de same, but IEFunctionsDbg.dll displays 
+a couple of messageboxes when error's occur. This also means it is 1.5K bigger, so for those
+who think that size does matter, I've included the 3.5K dll that does not display these messages.
+(In the source, this can be easily turned on and off by defining _NO_ERROR_MESSAGES)
+
+It has the following functions:
+
+OpenBrowser
+CloseBrowser
+ReleaseBrowser
+SurfTo
+ShowBar
+
+You start using it by calling OpenBrowser and finish by calling CloseBrowser or ReleaseBrowser.
+While you're using it, call all function with the /NOUNLOAD flag or you'll have memory leaks
+(besides, the call won't work, because the pointer to the browser hasn't been remembered from OpenBrowser)
+
+This DLL makes use of the IWebBrowser2 interface, if you want to have extra functions, go look in
+MSDN and add them.
+
+
+
+Function Descriptions:
+
+OpenBrowser:
+------------
+This opens a new internet explorer. After you're done with the browser, call CloseBrowser or ReleaseBrowser.
+This function must be called first, before any of the other functions can be called.
+
+Usage: 'IEFunctions::OpenBrowser /NOUNLOAD'
+
+Restrictions: The dll can only make a single connection to a browser, so OpenBrowser can only be called
+			  once or after CloaseBrowser or ReleaseBrowser has been called.
+
+CloseBrowser:
+-------------
+Closes the opened browser window and releases the stored interface to it. After this call no other functions 
+can be called on the browser again, save OpenBrowser.
+
+Usage: ''IEFunctions::CloseBrowser'
+
+Restrictions: OpenBrowser must have been called first
+
+ReleaseBrowser:
+---------------
+Release the stored interface to opened browser window. The dll closes it connection to the browser and
+leaves it open. After this call no other functions can be called on the browser again, 
+save OpenBrowser.
+
+Usage: ''IEFunctions::ReleaseBrowser'
+
+Restrictions: OpenBrowser must have been called first
+
+SurfTo:
+--------
+Makes the browser navigate to the specified url.
+
+Usage: ''IEFunctions::SurfTo /NOUNLOAD "http://www.url.com"'
+
+Restrictions: OpenBrowser must have been called first.
+
+
+ShowBar:
+--------
+Makes a toolbar in internet explorer visible.
+
+Usage: ''IEFunctions::ShowBar /NOUNLOAD "<CLSID>"'
+
+Restrictions: OpenBrowser must have been called first.
+
+Note: <CLSID> is in the format of a registry GUID: {91766D08-CF68-4F23-94C4-C1468FDE68AA}
+

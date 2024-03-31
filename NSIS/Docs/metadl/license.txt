@@ -1,0 +1,14 @@
+Metadl - metalink downloading plugin for NSIS
+Copyright (c) 2007 Hampus Wessman (hw@vox.nu)
+
+This plugin is partly based on the NSISdl plugin's source code
+and also uses libcurl, Expat and some code from XySSL.
+
+The Metadl plugin is licensed under GNU LGPL (see lgpl.txt).
+
+The code that comes from NSISdl was originally licensed under
+another license and that license is included in NSISdl.txt.
+That license needs to be included in any source distribution
+that contains any of the NSISdl code.
+Note that some of the code from NSISdl has been modified.
+

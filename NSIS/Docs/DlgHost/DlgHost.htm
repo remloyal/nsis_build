@@ -1,0 +1,44 @@
+<html><head><title>DlgHost plugin readme</title>
+<style>
+table {border-collapse:collapse;}
+table,tr,td {padding:0.2em;border:0.05em solid gray;}
+</style>
+</head><body>
+<h1>DlgHost</h1>
+
+
+
+<h2>Functions</h2>
+<h3>DlgHost::DlgBox</h3>
+<code>"&lt;hwndParent&gt; &lt;CallbackAddress&gt; &lt;Position&gt; &lt;Width&gt; &lt;Height&gt; [Titlebar text]"</code>
+<p>
+DlgBox creates a modal dialog box, close it by calling DlgHost::Close.
+<p>
+<table border=1>
+
+<tr><td rowspan=2>hwndParent</td><td>%HWND%</td><td>Use %HWND% as the parent window</td></tr>
+<tr><td>*</td><td>Auto</td></tr>
+
+<tr><td rowspan=2>Position</td><td>p</td><td>Center on parent</td></tr>
+<tr><td>m</td><td>Center on current monitor workarea</td></tr>
+
+<tr><td rowspan=3>Width/Height</td><td>50</td><td>50 pixels</td></tr>
+<tr><td>50u</td><td>50 dialog units</td></tr>
+<!--tr><td>50%</td><td>50% of current monitor workarea</td></tr-->
+<tr><td>0</td><td>Same size as $HWNDPARENT</td></tr>
+</table>
+
+
+
+<h3>DlgHost::SetClient</h3>
+<code>"&lt;hwndClient&gt;"</code>
+<p>
+Associate client dialog (The HWND from nsDialogs::Create) with the current DlgHost dialog.
+
+
+<h3>DlgHost::Close</h3>
+<p>
+Close the current DlgHost dialog.
+<p>
+
+</body></html>

@@ -1,0 +1,1041 @@
+﻿<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<title></title>
+
+<META content="text/html; charset=UTF-8" http-equiv=Content-Type>
+<META name=GENERATOR content="MSHTML 11.00.10570.1001"></HEAD>
+<BODY><div style="BORDER-TOP: black 1px solid; BORDER-RIGHT: black 1px solid; BORDER-BOTTOM: black 1px solid; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; BORDER-LEFT: black 1px solid; PADDING-RIGHT: 20px">
+<h2>目录</h2>
+<ul>
+<li><A href="#about">关于</A>
+<li>HTTP 函数
+<ul>
+<li><A href="#http">NScurl::http</A>
+<li><A href="#query">NScurl::query</A>
+<li><A href="#wait">NScurl::wait</A>
+<li><A href="#enumerate">NScurl::enumerate</A>
+<li><A href="#cancel">NScurl::cancel</A></li>
+</ul>
+<li>实用函数
+<ul>
+<li><A href="#escape">NScurl::escape</A>
+<li><A href="#unescape">NScurl::unescape</A>
+<li><A href="#md5">NScurl::md5</A>
+<li><A href="#sha1">NScurl::sha1</A>
+<li><A href="#sha256">NScurl::sha256</A></li>
+</ul></li></ul>
+</div>
+
+<h2><a name="about">关于</h2> 
+<b><A href="https://github.com/negrutiu/nsis-nscurl/">NScurl</A></b> 是一个具有高级 HTTP/HTTPS 功能的 <b><A href="https://github.com/negrutiu/nsis/">NSIS</A> (Nullsoft Scriptable Install System)</b>  插件.<br>
+它基于 <A href="https://curl.haxx.se/libcurl/">libcurl</A> 和 <A href="https://www.openssl.org/">OpenSSL</A> 实现 SSL 后端.<br>
+<br>
+<b>官方项目页面:</b> <A href="https://github.com/negrutiu/nsis-nscurl/">https://github.com/negrutiu/nsis-nscurl</A><br>
+<b>依赖项:</b> <A href="https://github.com/negrutiu/libcurl-devel/">https://github.com/negrutiu/libcurl-devel</A><br><br>
+<b>文档翻译:</b> <A href="https://www.cnblogs.com/nsis/">水晶石</A><br><br>
+<h3><a name="features">特点</h3>
+<ul>
+<li>先进性：支持现代协议和密码，包括 HTTP/2、TLS1.3 等.
+<li>兼容性：在 Windows NT4、Windows 11 及其之间的版本上运行良好
+<li>多线程：同时下载/上传多个文件
+<li>异步：启动多个后台传输，稍后检查它们
+<li>持续性：多次尝试连接和恢复失败/中断的传输
+<li>NSIS 感知：在任何安装阶段下载文件（从 .onInit、从区段、从自定义页面、静默安装程序等）
+<li>详细：提供丰富的有用信息供查询（传输大小、速度、HTTP 状态、HTTP 标头等）
+<li>支持 HTTP 和 TLS 认证
+<li>支持所有相关的 HTTP 方法（GET、POST、HEAD 等）
+<li>支持 DNS-over-HTTPS 名称解析
+<li>支持自定义 HTTP 标头和数据
+<li>支持代理服务器（带身份验证和开放的）
+<li>支持大于 4GB 的文件
+<li>可以将远程内容直接下载到内存（NSIS 字符串）而不是文件
+<li>还有很多其他功能.....</li> 
+</ul>
+<STYLE>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  border: 1px solid #dddddd;
+  background-color: #888888;
+  color: #ffffff;
+  text-align: left;
+  padding: 8px;
+}
+
+td {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</STYLE>
+
+<hr>
+
+<h2><a name="http">NScurl::http</a> &lt;METHOD&gt; &lt;URL&gt; &lt;DEST&gt; &lt;params&gt; /END</h2>
+
+<h3>说明:</h3>
+
+  这个函数创建一个新的
+HTTP
+请求。请求被添加到内部传输队列，并在那里等待，直到有工作线程可用。已完成的传输保留在队列中，随时可以<A href="#query">query(查询)</A>.<br>
+
+默认情况下，该函数同步等待新传输完成。如果使用 <b>/BACKGROUND</b> 参数，函数将立即返回传输 ID.<br>
+
+<h3>返回值:</h3>
+返回值被推送到堆栈。<br>
+
+ 默认情况下，该函数返回传输状态（也称为"@ERROR@" <A href="#keywords">查询关键字</A>）（例如，成功时为 <b>"OK"</b>）<br>
+如果指定了 <b>/BACKGROUND</b>, 该函数返回一个唯一的传输 ID，稍后可以传递给 <A href="#query">NScurl::query</A>.<br>
+如果指定了 <b>/RETURN "query_string"</b>, 该函数返回替换了<A href="#keywords">查询关键字</A>的指定字符串 .<br>
+
+<h3>示例:</h3>
+
+<div style="BACKGROUND-COLOR: #dddddd">
+<b># 快速传输（带取消和恢复）</b><br>
+<A href="#http">NScurl::http</A> GET "https://download.sysinternals.com/files/SysinternalsSuite.zip" "$TEMP\SysinternalsSuite.zip" /CANCEL /RESUME <A href="#end">/END</A><br>
+Pop $0 ; 状态文本（成功时为 "OK"）<br>
+</div>
+<br>
+<div style="BACKGROUND-COLOR: #dddddd">
+<b># 快速传输（带自定义 GET 参数和自定义请求标头）</b><br>
+<A href="#http">NScurl::http</A>  GET"https://httpbin.org/get?param1=value1&amp;param2=value2" "$TEMP\httpbin_get.json" /HEADER "Header1: Value1" /HEADER "Header2: Value2" <A href="#end">/END</A><br>
+Pop $0 ;状态文本（成功时为 "OK"）<br>
+</div>
+<br>
+<div style="BACKGROUND-COLOR: #dddddd">
+<b># POST JSON 文件</b><br>
+<A href="#http">NScurl::http</A> POST "https://httpbin.org/post" Memory /HEADER "Content-Type: application/json" /DATA '{ "number_of_the_beast" : 666 }' <A href="#end">/END</A><br>
+Pop $0 ; 状态文本（成功时为 "OK"）<br>
+</div>
+<br>
+<div style="BACKGROUND-COLOR: #dddddd">
+<b>#POST JSON 文件（作为多部分表单）</b><br>
+<A href="#http">NScurl::http</A> POST "https://httpbin.org/post" Memory /POST "User" "My user name" /POST "Password" "My password" /POST FILENAME=maiden.json TYPE=application/json "Details" '{ "number_of_the_beast" : 666 }' <A href="#end">/END</A><br>
+Pop $0 ; 状态文本（成功时为 "OK"）<br>
+</div>
+
+<h3>参数:</h3>
+<table>
+<tr>
+	<td>GET | POST | HEAD | PUT | ...</td>
+	<td>HTTP 方式.<br>
+	<b>注意: 此参数是必需的.</b><br>
+	</td>
+</tr>
+<tr>
+	<td>URL</td>
+	<td>完整的 URI，包括查询参数.<br>
+	<b>注意:</b> 调用者必须对查询参数进行转义. <A href="#escape">NScurl::escape</A> 可用于执行这个操作.<br>
+	<b>注意：此参数是必需的.</b><br>
+	</td>
+</tr>
+<tr>
+	<td>filename|MEMORY</td>
+	<td>传输目标.<br>
+	如果指定了 <b>MEMORY</b> 则远程内容直接下载到内存中. 可以稍后使用<b>@RECVDATA@</b> <A href="#keywords">查询关键字</A>检索.<br>
+	<b>注意:</b> 下载到内存的数据被截断为 NSIS 的最大字符串长度 (1KB, 4KB, 8KB, 字串长度取决于 NSIS 的构建版本).如果你期望更大的数据，建议将其下载到磁盘上.<br>
+	<b>注意：此参数是必需的.</b><br>
+	</td>
+</tr>
+<tr>
+	<td>/RETURN query_string</td>
+	<td>请求自定义的返回值。默认值是  "@ERROR@" (也称为传输状态)<br>
+	接受任何 <A href="#keywords">查询关键字</A>的组合.<br>
+	(例如 "@ERRORCODE@ - @ELAPSEDTIME@")<br>
+	</td>
+</tr>
+<tr>
+	<td>/HTTP1.1</td>
+	<td>禁用 HTTP/2 的 ALPN 协商.<br>
+	一些服务器可能通过 HTTP/1.1 来实现更快的速度<br>
+	</td>
+</tr>
+<tr>
+	<td>/PROXY proxy</td>
+	<td>通过代理服务器连接.<br>
+	<b>语法:</b> scheme://address.domain[:port].<br>
+	支持的方案(schemes): http, https, socks4, socks4a, socks5, socks5a<br>
+	有关更多信息，请查阅 libcurl 的 <A href="https://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html">CURLOPT_PROXY</A> 文档.<br>
+	</td>
+</tr>
+<tr>
+	<td>/DOH &lt;url&gt;</td>
+	<td>指定一个 <A href="https://en.wikipedia.org/wiki/DNS_over_HTTPS">DNS over HTTPS</A> 服务器以安全地解析 DNS 请求.<br>
+	<b>注意:</b> 此 DoH 服务器仅用于当前传输。这不是一个全局设置.<br>
+	<b>示例:</b> /DOH "<A href="https://cloudflare-dns.com/dns-query">https://cloudflare-dns.com/dns-query</A>"<br>
+	<b>示例:</b> /DOH "<A href="https://doh.opendns.com/dns-query">https://doh.opendns.com/dns-query</A>"<br>
+	<b>示例:</b> /DOH "<A href="https://dns.google/dns-query">https://dns.google/dns-query</A>"<br>
+	</td>
+</tr>
+<tr>
+	<td>/TIMEOUT time<br>
+	/CONNECTTIMEOUT time<br>
+	</td>
+	<td>连接超时（默认值：5分钟）<br>
+	此值适用于每次重新连接尝试.<br>
+	除非您还指定了 <b>/INSIST</b> 否则  NScurl 将在第一次连接失败后中止.<br>
+	<br>
+	<b>注意:</b>默认超时的 <b>时间</b> 值 以毫秒为单位. 同时接受 "s"、"m" 或 "h" 后缀.<br>
+	<b>示例:</b> /TIMEOUT 5000, /TIMEOUT 5s, /TIMEOUT 15m, /TIMEOUT 24h<br>
+	</td>
+</tr>
+<tr>
+	<td>/COMPLETETIMEOUT time</td>
+	<td>传输超时（默认值：无限值）<br>
+	此值设置传输允许运行的最长时间限制。当达到此超时时，传输将被取消.<br>
+	有关 <b>时间</b> 方面的示例，请参见<b> /TIMEOUT</b>。<br>
+	</td>
+</tr>
+<tr>
+	<td>/LOWSPEEDLIMIT bps time</td>
+	<td>如果传输速度在一段 <b>时间</b> 内低于 <b>bps</b>，则中止传输.<br>
+                默认值：0bps，持续1分钟，意味着1分钟没有活动，当前连接将被断开.<br>
+	有关 <b>时间</b> 示例，请参见 <b>/TIMEOUT</b><br>
+                 <br>
+	<b>示例:</b> /LOWSPEEDLIMIT 204800 10s<br>
+	</td>
+</tr>
+<tr>
+	<td>/SPEEDCAP bps</td>
+	<td>速度上限（默认值：无）<br>
+	传输速度不允许超过此值.<br>
+	</td>
+</tr>
+<tr>
+	<td>/INSIST</td>
+	<td>NScurl 尝试更积极地重新连接到 Web 服务器.<br>
+	即使发生关键错误它仍将进行尝试连接（例如，没有网络连接、Web 服务器宕机等），直至超时<br>
+	此外，NScurl 将尝试重新建立中断的 <b>HTTP GET</b> 传输， 并在可选的情况下使用 <b>/RESUME</b> 继续这些传输.<br>
+	如果没有使用 <b>/INSIST</b> ，传输将在第一次出现错误时被终止.<br>
+	</td>
+</tr>
+<tr>
+	<td>/RESUME</td>
+	<td>如果（部分）目标文件已经在本地存在，继续传输<br>
+	默认情况下，目标文件将被覆盖，并重新开始传输。</td>
+</tr>
+<tr>
+	<td>/NOREDIRECT</td>
+	<td>不跟随 HTTP 重定向。默认是跟随。</td>
+</tr>
+<tr>
+	<td>/USERAGENT agent</td>
+	<td>覆盖默认的用户代理<br>
+	默认值是 "<b>nscurl/@PLUGINVERSION@</b>"<br>
+                接受 <A href="#keywords">Global keywords</A>(全局关键字) (例如 "curl/@CURLVERSION@").
+	</td>
+</tr>
+<tr>
+	<td>/REFERER url</td>
+	<td>要引用的url，可选。</td>
+</tr>
+<tr>
+	<td>/DEBUG [nodata] debugfile</td>
+	<td>将传输的 HTTP/SSL 详细信息写入调试文件。<br>
+                <b>nodata</b> 选项防止将远程内容写入调试文件，只写入其大小。<br>
+	默认情况下禁用<br>
+	</td>
+</tr>
+<tr>
+	<td>/AUTH [TYPE=basic|digest|digestie] user pass</td>
+	<td>HTTP 认证。<br>
+	如果未指定类型，将自动确定类型。但在连接到具有“隐藏”身份验证的服务器时，<br>
+	必须明确指定类型。<br>
+                用户名和密码必须是未转义的明文。<br>
+	有关更多信息，请参阅 libcurl 的 <A href="https://curl.haxx.se/libcurl/c/CURLOPT_HTTPAUTH.html">CURLOPT_HTTPAUTH</A> 文档<br>
+	</td>
+</tr>
+<tr>
+	<td>/AUTH TYPE=bearer token</td>
+	<td>HTTP 请求的身份验证.<br>
+	必须 OAuth 2.0 令牌.<br>
+	有关更多信息，请参阅 libcurl 的 <A href="https://curl.haxx.se/libcurl/c/CURLOPT_HTTPAUTH.html">CURLOPT_HTTPAUTH</A> 文档.<br>
+	</td>
+</tr>
+<tr>
+	<td>/TLSAUTH user pass</td>
+	<td><A href="https://en.wikipedia.org/wiki/TLS-SRP">TLS-SRP</A>（安全远程密码）身份验证.<br>
+	用户名和密码必须是未转义的明文<br>
+	有关更多信息，请参阅 libcurl 的 <A href="https://curl.haxx.se/libcurl/c/CURLOPT_TLSAUTH_TYPE.html">CURLOPT_TLSAUTH_TYPE</A> 文档 .<br>
+	</td>
+</tr>
+<tr>
+	<td>/HEADER hdr(s)</td>
+	<td>附加的 HTTP 请求头。.<br>
+	<b>注意:</b> 多个头可以通过 CRLF（$\r$\n）分隔<br>
+	<b>注意:</b> 可以接受多个 /HEADER 参数.<br>
+	</td>
+</tr>
+<tr>
+	<td><a name="data">/DATA</a> [-string|file|memory] &lt;data&gt;</td>
+	<td>上传本地数据到服务器.<br>
+	<br>
+	数据可以从文件中读取，也可以直接从内存中读取。<br>
+	 <b>-string</b>, <b>-file</b>, <b>-memory</b> 选项用于指示 <b>data</b>（数据）的来源.<br>
+	如果未指定，函数会尝试猜测 <b>data</b> 是文件名还是一般字符串.<br>
+	<br>
+	<b>示例:</b><br>
+	<A href="#http"><b>NScurl::http</b></A> PUT ${url} ${file} /DATA <b>"上传的字符串"</b> <A href="#end">/END</A><br>
+	<A href="#http"><b>NScurl::http</b></A> PUT ${url} ${file} /DATA <b>"C:\dir\file.dat"</b> <A href="#end">/END</A><br>
+	<A href="#http"><b>NScurl::http</b></A> PUT ${url} ${file} /DATA <b>-string "C:\dir\file.dat"</b> <A href="#end">/END</A>  /* 将文件路径本身上传为 <u>字符串</u> */<br>
+	<A href="#http"><b>NScurl::http</b></A> PUT ${url} ${file} /DATA <b>-memory 0xdeadbeef 256</b> <A href="#end">/END</A><br>
+	<br>
+	<b>注意:</b> <b>-memory</b> 后面必须跟随两个参数：地址和大小。<br>
+	<b>注意:</b>尽管是可选的，但建议始终指定<b>-string|file|memory</b>选项.<br>
+	<b>注意:</b> 仅在需要 POST 或 PUT 方法时有效，否则将被忽略.<br>
+	</td>
+</tr>
+<tr>
+	<td>/POST
+	<p style="MARGIN-BOTTOM: 0px; MARGIN-TOP: 0px; MARGIN-LEFT: 10px" 
+     >
+		[FILENAME=remote_filename]<br>
+		[TYPE=mime_type]<br>
+		&lt;name&gt;<br>
+		[-string|file|memory] &lt;data&gt;<br>
+	</p>
+	</td>
+	<td>上传一个多部分表单到服务器.<br>
+	<br>
+	FILENAME：可选的远程文件名<br>
+	TYPE：可选的 MIME 类型<br>
+	name：表单部分的名称<br>
+	data：表单部分的数据<br>
+	<br>
+	<b>示例:</b><br>
+	<A href="#http"><b>NScurl::http</b></A> POST ${url} ${file} \<br>
+	<p style="MARGIN-BOTTOM: 0px; MARGIN-TOP: 0px; MARGIN-LEFT: 10px" 
+     >
+		/POST "User" <b>"用户名"</b> \<br>
+		/POST "Pass" <b>"密码"</b> \<br>
+		/POST "InfoFile" <b>-string "$TEMP\MyDetail.json"</b> /* 将文件路径本身作为字符串上传</U> */ \<br>
+		/POST "InfoData" <b>-file "$TEMP\MyDetail.json"</b> /*上传文件内容 */ \<br>
+		/POST "Image" FILENAME=MyImage.jpg TYPE=image/jpeg <b>"$TEMP\MyImage.jpg"</b> \<br>
+		/POST "Details" FILENAME=MyDetails.json TYPE=application/json <b>'{ "number_of_the_beast" : 666 }'</b> \<br>
+		<A href="#end">/END</A><br>
+	</p>
+	<br>
+	<b>注意:</b> 请查看 <A href="#data">/DATA</A> 了解 <b>data</b>（数据）的解释.<br>
+	<b>注意:</b> 可以使用多个 /POST 参数。所有表单部分将作为一个多部分表单发送<br>
+	<b>注意:</b> 仅在需要 POST 方法时有效，否则将被忽略.<br>
+	</td>
+</tr>
+<tr>
+	<td>/Zone.Identifier<br>
+	/MARKOFTHEWEB<br>
+	</td>
+	<td>将输出文件标记为 "Mark of the Web"。<br>
+	会将 "Zone.Identifier" 替代 NTFS 数据流附加到输出文件。<br>
+	</td>
+</tr>
+<tr>
+	<td>/CACERT "path\cacert.pem"</td>
+	<td>使用自定义的<b>cacert.pem</b> 证书数据库验证 web 服务器的身份<br>
+	默认情况下，会在运行时提取并使用内置的 <b>cacert.pem</b> .<br>
+	可以通过指定空 ("") 路径来关闭 SSL 验证。<br>
+	<br>
+	<b>注意:</b> 嵌入的 <b>cacert.pem</b> 可能会迅速过时. 这会导致将合法的网站视为不受信任.<br>
+	<b>注意:</b> libcurl 项目维护一个被认为是可信的 <b>cacert.pem</b> 数据库. 您可以从他们的网站上<A href="https://curl.haxx.se/docs/caextract.html">下载</A>并将其提供给 NScurl 作为自定义证书存储。<br>
+	</td>
+</tr>
+<tr>
+	<td>/CERT thumbprint</td>
+	<td>指定一个额外的受信任证书的 SHA1 摘要指纹（例如 /CERT 917e732d330f9a12404f73d8bea36948b929dffc）.<br>
+	除了 <b>cacert.pem</b> 数据库之外，受信任的摘要指纹用于 SSL 验证。<br>
+	<br>
+	<b>注意:</b> 接受多个 /CERT 参数。所有指纹都被汇总到一个大的证书白名单中<br>
+	<b>注意:</b> <b>cacert.pem</b> 数据库可以通过指定空路径 (<b>/CACERT ""</b>) 来关闭, 从而使指纹列表成为唯一用于验证的证书存储。<br>
+	</td>
+</tr>
+<tr>
+	<td>/DEPEND id</td>
+	<td>使此 HTTP 请求依赖于另一个请求。<br>
+	新请求将在队列中等待，直到其依赖项完成。<br>
+	在多线程环境中建立精确的 HTTP 请求顺序时非常有用。<br>
+	</td>
+</tr>
+<tr>
+	<td>/TAG tag</td>
+	<td>为新的 HTTP 请求分配一个标签（又称组）。<br>
+	多个传输可以在相同的标签下进行分组。<br>
+	<b>注意:</b> 标签是没有字符限制的自定义字符串。<br>
+	<br>
+	<b>示例:</b><br>
+	<A href="#http">NScurl::http</A> GET ${URL1} ${File1} <b>/TAG "FirstTag"</b> /BACKGROUND /END<br>
+	<A href="#http">NScurl::http</A> GET ${URL2} ${File2} <b>/TAG "SecondTag"</b> /BACKGROUND /END<br>
+	<A href="#http">NScurl::http</A> GET ${URL3} ${File3} <b>/TAG "FirstTag"</b> /BACKGROUND /END<br>
+	<A href="#wait">NScurl::wait</A> <b>/TAG "FirstTag"</b> /END<br>
+	<A href="#cancel">NScurl::cancel</A> <b>/TAG "FirstTag"</b> /REMOVE<br>
+	</td>
+</tr>
+<tr>
+	<td>/BACKGROUND</td>
+	<td>默认情况下，NScurl::http 创建一个新的 HTTP 请求并 <b>waits</b>（等待）其完成。<br>
+	使用  <b>/BACKGROUND</b> 将新请求标记为后台传输，并将其放入队列以供以后处理。<br>
+	调用立即返回，不显示可视进度。<br>
+	<b>注意:</b> <b><A href="#http">NScurl::http</A></b> 将返回 <b>传输 ID</b> 而不是传输状态. 该 ID 可以在以后用于 <A href="#query">querying</A>（查询）。<br>
+	</td>
+</tr>
+<tr>
+	<td>/PAGE</td>
+	<td>在页面模式下等待传输完成。<br>
+	在从 NSIS 区段等待时 (在 <b>InstFiles</b> 页面), 该函数将创建一个专用的进度条来可视化显示进度。<br>
+	<b>注意:</b> 如果没有其他指定，/PAGE 是默认的等待模式！<br>
+	<b>注意:</b> /PAGE 与 /BACKGROUND 不兼容。<br>
+	</td>
+</tr>
+<tr>
+	<td>/POPUP</td>
+	<td>等待传输在弹出模式下完成。<br>
+	进度显示在一个弹出窗口上。<br>
+	<b>注意:</b> /POPUP 与 /BACKGROUND 不兼容。<br>
+	</td>
+</tr>
+<tr>
+	<td>/SILENT</td>
+	<td>在静默模式下等待传输完成<br>
+	不显示可视进度<br>
+	<b>注意:</b> 这是<b>silent</b>（静默）安装程序的默认等待模式。  <br>
+	<b>注意:</b> /SILENT 与 /BACKGROUND 不兼容。<br>
+	</td>
+</tr>
+<tr>
+	<td>/CANCEL</td>
+	<td>在页面模式或弹出窗口模式等待时启用 <b>Cancel</b> 按钮.<br>
+	默认情况下，无法取消传输<br>
+	</td>
+</tr>
+<tr>
+	<td>/TITLEWND hwnd<br>
+	/TEXTWND hwnd<br>
+	/PROGRESSWND hwnd<br>
+	/CANCELWND hwnd<br>
+	</td>
+	<td>可选的标题窗口句柄。<br>
+	可选的文本/状态窗口句柄。<br>
+	可选的进度条窗口句柄。<br>
+	可选的取消按钮句柄。<br>
+	<b>注意:</b> 这些窗口默认情况下会自动检测/创建。<br>
+	</td>
+</tr>
+<tr>
+	<td>/STRING TITLE string<br>
+	/STRING TITLE_NOSIZE string<br>
+	/STRING TITLE_MULTI string<br>
+	/STRING TEXT string<br>
+	/STRING TEXT_NOSIZE string<br>
+	/STRING TEXT_MULTI string<br>
+	</td>
+	<td>覆盖默认的（英文）用户界面字符串。<br>
+	用于创建本地化的安装程序。<br>
+	所有字符串都可以包含 <A href="#keywords">查询关键字</A>.<br>
+	</td>
+</tr>
+<tr>
+	<td><a name="end">/END</a></td>
+	<td>始终要以此参数来结束参数列表.<br>
+	<b>注意：此参数是必需的.</b><br>
+	</td>
+</tr>
+</table>
+<br>
+
+<hr>
+
+<h2><a name="query">NScurl::query</a> [/ID id] [/TAG tag] "query_string"</h2>
+
+<h3>说明:</h3>
+查询有关传输 ID 的信息。<br>
+该函数将<b>查询字符串内</b>的 <A href="#keywords">查询关键字</A> 替换为实际运行时数据。<br>仅当匹配到单个传输时，才能使用特定于传输的关键字（请参阅/ID vs. /TAG）。
+<br  >
+<b>全局关键字</b>始终可用<br>
+
+<h3>返回值:</h3>
+使用扩展关键字的 <b>query_string</b>（查询字符串）将被推送到堆栈上
+
+<h3>示例:</h3>
+<div style="BACKGROUND-COLOR: #dddddd">
+<i>; 查询有关特定HTTP请求的信息</i><br>
+<b><A href="#http">NScurl::http</A></b> GET "https://download.sysinternals.com/files/SysinternalsSuite.zip" "$TEMP\SysinternalsSuite.zip" /RETURN "<A href="#keywords">@ID@</A>" <A href="#end">/END</A><br>
+Pop $0 ; <i>传输 ID</i><br>
+<br>
+<b><A href="#query">NScurl::query</A></b> /ID $0 "Status: @ERROR@, Headers: @RECVHEADERS@"<br>
+Pop $1 ; <i>服务器响应头</i>
+</div>
+<br>
+
+<div style="BACKGROUND-COLOR: #dddddd">
+<i>; 查询全局信息</i><br>
+<b><A href="#http">NScurl::query</A></b> "<A href="#keywords">@TOTALSIZE@</A> - <A href="#keywords">@TOTALSPEED@</A>"<br>
+Pop $0
+</div>
+<br>
+
+<h3>参数:</h3>
+<table>
+<tr>
+	<td>/ID id</td>
+	<td>查询有关特定传输的信息<br>
+	传输 ID 由 <A href="#http">NScurl::http</A> 返回.<br></td>
+<tr>
+	<td>/TAG tag</td>
+	<td>查询有关多个使用相同 <b>tag</b>（标签）标记的传输的信息 .<br>
+	请参见 <A href="#http">NScurl::http</A>.
+	</td>
+</tr>
+<tr>
+	<td>query_string</td>
+	<td>输入字符串。<br>
+	该函数将使用实际数据替换 <A href="#keywords">查询关键字</A> 并返回结果。<br>
+	</td>
+</tr>
+</table>
+
+<h3><a name="keywords">查询关键字:</a></h3>
+
+<table>
+<tr>
+	<th><u>传输特定</u> 关键字</th>
+	<th>解释</th>
+</tr>
+<tr>
+	<td>@ID@</td>
+	<td>唯一传输 ID<br>
+	数值：大于等于1的整数<br>
+	在 <A href="#http">NScurl::http</A> /return "@ID@"中使用
+	</td>
+</tr>
+<tr>
+	<td>@STATUS@</td>
+	<td>传输状态: <b>等待</b>, <b>运行</b> 或 <b>完成</b>
+	</td>
+</tr>
+<tr>
+	<td>@METHOD@</td>
+	<td>HTTP方法 (例如 GET, POST, PUT 等.)<br>
+	</td>
+</tr>
+<tr>
+	<td>@URL@</td>
+	<td>完整的 HTTP 请求 URI。<br>
+	</td>
+</tr>
+<tr>
+	<td>@FINALURL@</td>
+	<td>在所有重定向都被跟踪后的最终 HTTP 请求 URI。<br>
+	</td>
+</tr>
+<tr>
+	<td>@OUT@</td>
+	<td>传输目的地。<br>
+	可以是本地文件路径或<b>内存</b>。 
+	</td>
+</tr>
+<tr>
+	<td>@OUTFILE@</td>
+	<td>从 @OUT@ 中提取的目标文件名(例如 "SysinternalsSuite.zip")<br>
+	</td>
+</tr>
+<tr>
+	<td>@OUTDIR@</td>
+	<td>从 @OUT@ 中提取的目标目录 (例如 "C:\Downloads")<br>
+	</td>
+</tr>
+<tr>
+	<td>@SERVERIP@</td>
+	<td>HTTP 服务器的 IP 地址。<br>
+	</td>
+</tr>
+<tr>
+	<td>@SERVERPORT@</td>
+	<td>HTTP 服务器 IP 端口号（通常为 80 或 443）。<br>
+	</td>
+</tr>
+<tr>
+	<td>@FILESIZE@<br>
+	@FILESIZE_B@<br>
+	</td>
+	<td>从 <b>Content-Length</b> HTTP 标头中提取的远程文件大小。<br>
+	值：格式化的文件大小（例如“100 字节”，“250 KB”，“10 MB”，“1.2 GB”等）。<br>
+	<b>注意:</b> 某些服务器不提供此信息。<br>
+	<b>注意:</b>@FILESIZE_B@ 以字节形式返回相同的值。<br>
+	</td>
+</tr>
+<tr>
+	<td>@XFERSIZE@<br>
+	@XFERSIZE_B@<br>
+	</td>
+	<td>实际传输的数据量。<br>
+	<b>注意:</b>通常情况下，它与 @FILESIZE@ 的值相同，但在传输失败或取消时可能会更小。<br>
+	<b>注意:</b>@XFERSIZE_B@ 以字节为单位返回相同的值<br>
+	</td>
+</tr>
+<tr>
+	<td>@PERCENT@</td>
+	<td>传输进度。<br>
+	值：<b>0-100</b> 的整数, 如果百分比未知，则为 <b>-1</b>。<br>
+	<b>注意:</b> 如果 Web 服务器没有发送 <b>Content-Length</b>  标头，则百分比未知。
+	</td>
+</tr>
+<tr>
+	<td>@SPEED@<br>
+	@SPEED_B@<br>
+	</td>
+	<td>实时传输速度，格式化显示（例如，“100 KB/s”，“1.2 MB/s”等）。<br>
+	<b>注意:</b> @SPEED_B@ 的值以 字节/秒 格式返回。<br>
+	</td>
+</tr>
+<tr>
+	<td>@AVGSPEED@<br>
+	@AVGSPEED_B@<br>
+	</td>
+	<td>平均传输速度，格式化显示（例如，“100 KB/s”，“1.2 MB/s”等）。<br>
+	<b>注意:</b> @AVGSPEED_B@ 的值以 字节/秒 格式返回。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TIMEELAPSED@<br>
+	@TIMEELAPSED_MS@<br>
+	</td>
+	<td>传输使用的时间。格式为 [d.][hh:]mm:ss（例如，“05:02”表示5分钟2秒）<br>
+	不包括此请求在队列中等待的时间。<br>
+	<b>注意:</b> @TIMEELAPSED_MS@ 以毫秒为单位返回相同的值。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TIMEREMAINING@<br>
+	@TIMEREMAINING_MS@<br>
+	</td>
+	<td>预估完成此传输所需的时间。格式为 [d.][hh:]mm:ss<br>
+	<b>注意:</b> @TIMEREMAINING_MS@ 以毫秒为单位返回相同的值<br>
+	</td>
+</tr>
+<tr>
+	<td>@SENTHEADERS@<br>
+	@SENTHEADERS_RAW@<br>
+	@SENTHEADERS:Header-Name@<br>
+	</td>
+	<td>HTTP请求标头。<br>
+	一些特殊字符，如\t，\r，\n，被它们的字符串表示"\t"，"\r"，"\n"所替换。<br>
+	<b>注意:</b> @SENTHEADERS_RAW@以原样返回相同的值，不替换任何字符。<br>
+	<b>注意:</b> @SENTHEADERS:Header-Name@返回特定标头的值。(例如"@SENTHEADERS:<b>Accept-Encoding</b>@")<br>
+	</td>
+</tr>
+<tr>
+	<td>@RECVHEADERS@<br>
+	@RECVHEADERS_RAW@<br>
+	@RECVHEADERS:Header-Name@<br>
+	</td>
+	<td>HTTP响应标头。<br>
+	一些特殊字符，如\t，\r，\n，被它们的字符串表示"\t"，"\r"，"\n"所替换。<br>
+	<b>注意:</b> @RECVHEADERS_RAW@以原样返回相同的值，不替换任何字符。<br>
+	<b>注意:</b> @RECVHEADERS:Header-Name@返回特定标头的值。(例如"@SENTHEADERS:<b>Content-Type</b>@")<br>
+	</td>
+</tr>
+<tr>
+	<td>@RECVDATA@<br>
+	@RECVDATA_RAW@<br>
+	</td>
+	<td>接收到的数据样本。<br>
+	不可打印字符将被替换为 "."<br>
+	<b>注意:</b>可以检索下载到 <b>MEMORY</b>(内存)的远程内容。<br>
+	<b>注意:</b> 此值被截断为NSIS的最大字符串长度（1KB、4KB、8KB，取决于NSIS的构建）。<br>
+	<b>注意:</b> @RECVDATA_RAW@返回相同的值，没有替换任何字符。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TAG@</td>
+	<td>传输标签，默认为空。<br>
+	可以使用相同的标签对多个传输进行标记。<br>
+	</td>
+</tr>
+<tr>
+	<td>@ERROR@</td>
+	<td>最终传输状态。<br>
+	值: "<b>OK</b>"表示成功，'0x2a "Callback aborted"' 等表示其他状态。<br>
+	</td>
+</tr>
+<tr>
+	<td>@ERRORCODE@</td>
+	<td>数值状态代码。<br>
+	它可以是一个HTTP状态代码，一个libcurl错误代码，或者一个Win32错误代码。<br>
+	值: 200, 206, 404, 0x2a, 等.<br>
+	</td>
+</tr>
+<tr>
+	<td>@ERRORTYPE@</td>
+	<td>返回 @ERRORCODE@ 的错误类型。<br>
+	值: <b>win32</b>, <b>curl</b> 或者 <b>http</b><br>
+	</td>
+</tr>
+<tr>
+	<td>@CANCELLED@</td>
+	<td>指示传输是否被用户取消。<br>
+	值: (布尔值) 0 或 1.<br>
+	</td>
+</tr>
+
+
+<tr>
+	<th><u>全局关键字</u></th>
+	<th>解释</th>
+</tr>
+<tr>
+	<td>@PLUGINNAME@</td>
+	<td>"<b>NScurl</b>"<br>
+	</td>
+</tr>
+<tr>
+	<td>@PLUGINVERSION@</td>
+	<td>插件的版本。<br>
+	返回来自版本信息资源块的 <b>FileVersion</b> 值<br>
+	</td>
+</tr>
+<tr>
+	<td>@PLUGINAUTHOR@</td>
+	<td>作者姓名.<br>
+	返回来自版本信息资源块的 <b>CompanyName</b> 值.<br>
+	</td>
+</tr>
+<tr>
+	<td>@PLUGINWEB@</td>
+	<td>项目网址。<br>
+	返回来自版本信息资源块的 <b>LegalTrademarks</b>值.<br>
+	</td>
+</tr>
+<tr>
+	<td>@CURLVERSION@</td>
+	<td>libcurl版本（例如 "7.68.0"）。<br>
+	</td>
+</tr>
+<tr>
+	<td>@CURLSSLVERSION@</td>
+	<td>SSL后端版本（例如 "OpenSSL/1.1.1t"）。<br>
+	</td>
+</tr>
+<tr>
+	<td>@CURLPROTOCOLS@</td>
+	<td>libcurl内置协议（例如 "http https"）<br>
+	</td>
+</tr>
+<tr>
+	<td>@CURLFEATURES@</td>
+	<td>libcurl内置功能（例如 "SSL NTLM Debug AsynchDNS Largefile TLS-SRP UnixSockets"）<br>
+	</td>
+</tr>
+<tr>
+	<td>@USERAGENT@</td>
+	<td>默认用户代理（例如 "nscurl/1.2020.3.1"）<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALCOUNT@</td>
+	<td>队列中的HTTP请求数量。<br>
+	包括全部 <b>等待中</b>, <b>运行中</b> 和 <b>已完成</b> 请求。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALWAITING@</td>
+	<td>队列中 <b>等待中</b> 请求数量。.<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALRUNNING@</td>
+	<td>队列中 <b>运行中</b> 的请求数量。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALCOMPLETE@</td>
+	<td>队列中 <b>已完成</b> 的请求数量。.<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALACTIVE@</td>
+	<td>队列中 <b>等待中 </b> + <b>运行中</b> 的请求数量。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALSTARTED@</td>
+	<td>队列中 <b>已完成 </b> + <b>运行中</b> 的请求数量。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALERRORS@</td>
+	<td>队列中失败的请求数量。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALSPEED@<br>
+	@TOTALSPEED_B@<br>
+	</td>
+	<td><b>运行中</b>的传输的聚合速度（例如 "120 KB/s"，"1.2 MB/s"等）。<br>
+	<b>注意:</b> @TOTALSPEED_B@以 字节/秒 的形式返回相同的值。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALSIZE@<br>
+	@TOTALSIZE_B@<br>
+	</td>
+	<td>下载 + 上传数据的聚合量（例如 "100 MB"，"5 GB"等）。<br>
+	<b>注意:</b> @TOTALSIZE_B@以字节的形式返回相同的值。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALSIZEUP@<br>
+	@TOTALSIZEUP_B@<br>
+	</td>
+	<td>上传数据的聚合量（例如 "100 MB"，"5 GB"等）。<br>
+	<b>注意:</b> @TOTALSIZEUP_B@以字节的形式返回相同的值。<br>
+	</td>
+</tr>
+<tr>
+	<td>@TOTALSIZEDOWN@<br>
+	@TOTALSIZEDOWN_B@<br>
+	</td>
+	<td>下载数据的聚合量（例如 "100 MB"，"5 GB"等）。<br>
+	<b>注意:</b>@TOTALSIZEDOWN_B@以字节的形式返回相同的值。<br>
+	</td>
+</tr>
+<tr>
+	<td>@THREADS@</td>
+	<td>当前的工作线程数量。<br>
+	</td>
+</tr>
+<tr>
+	<td>@MAXTHREADS@</td>
+	<td>工作线程的最大数量。<br>
+	</td>
+</tr>
+
+</table>
+<br>
+
+<hr>
+
+<h2><a name="wait">NScurl::wait</a> [/ID id] [/TAG tag] &lt;params&gt; /END</h2>
+
+<h3>说明:</h3>
+同步等待一个或多个<b>后台</b>传输完成。<br>
+根据参数，可能会显示或不显示可视化进度。<br>
+
+<h3>返回值:</h3>
+<b>无返回值</b>
+
+<h3>示例:</h3>
+<div style="BACKGROUND-COLOR: #dddddd">
+<b># 启动一个后台传输。</b><br>
+<b><A href="#http">NScurl::http</A></b> GET "${URL}" "${FILE}" <b>/BACKGROUND</b> <A href="#end">/END</A><br>
+Pop $0	; 传输 ID<br>
+<br>
+<b># ...添加某些功能代码...</b><br>
+<br>
+<b># 等待...</b><br>
+<b><A href="#wait">NScurl::wait</A></b> /ID $0 /CANCEL /END<br>
+</div>
+<br>
+
+<h3>参数:</h3>
+<table>
+<tr>
+	<td>/ID id</td>
+	<td>等待特定的传输完成。<br>
+	传输ID由 <A href="#http">NScurl::http</A> 返回。<br>
+                </td>
+<tr>
+	<td>/TAG tag</td>
+	<td>等待多个带有相同<b>标签</b>的传输完成<br>
+	详见 <A href="#http">NScurl::http</A>
+	</td>
+</tr>
+<tr>
+	<td>/PAGE</td>
+	<td>详见 <A href="#http">NScurl::http</A></td>
+</tr>
+<tr>
+	<td>/POPUP</td>
+	<td>详见 <A href="#http">NScurl::http</A></td>
+</tr>
+<tr>
+	<td>/SILENT</td>
+	<td>详见 <A href="#http">NScurl::http</A></td>
+</tr>
+<tr>
+	<td>/CANCEL</td>
+	<td>详见 <A href="#http">NScurl::http</A></td>
+</tr>
+<tr>
+	<td>/TITLEWND hwnd<br>
+	/TEXTWND hwnd<br>
+	/PROGRESSWND hwnd<br>
+	/CANCELWND hwnd<br>
+	</td>
+	<td>详见 <A href="#http">NScurl::http</A></td>
+</tr>
+<tr>
+	<td>/STRING TITLE string<br>
+	/STRING TITLE_NOSIZE string<br>
+	/STRING TITLE_MULTI string<br>
+	/STRING TEXT string<br>
+	/STRING TEXT_NOSIZE string<br>
+	/STRING TEXT_MULTI string<br>
+	<td>详见 <A href="#http">NScurl::http</A></td>
+	</td>
+</tr>
+<tr>
+	<td>/END</td>
+	<td>始终以此结束参数列表。<br>
+	<b>注意：此参数是必需的。</b><br>
+	</td>
+</tr>
+</table>
+<br>
+
+<hr>
+
+<h2><a name="enumerate">NScurl::enumerate</a> [/TAG tag] [/STATUS status] /END</h2>
+
+<h3>说明:</h3>
+在内部传输队列中枚举 HTTP 传输。<br>
+
+<h3>返回值:</h3>
+传输ID逐个推送到堆栈。<br>
+推送空字符串 ("") 以标记枚举的结束。<br>
+
+<h3>示例:</h3>
+<div style="BACKGROUND-COLOR: #dddddd">
+<b><A href="#enumerate">NScurl::enumerate</A></b> /END<br>
+_enum_loop:<br>
+	<p style="MARGIN-BOTTOM: 0px; MARGIN-TOP: 0px; MARGIN-LEFT: 20px">
+	Pop $0<br>
+	StrCmp $0 "" _enum_end<br>
+	DetailPrint 'TODO: 传输 ID $0'<br>
+	Goto _enum_loop<br>
+	</p>
+_enum_end:<br>
+</div>
+<br>
+
+<h3>参数:</h3>
+<table>
+<tr>
+	<td>/TAG tag</td>
+	<td>枚举使用相同 <b>tag</b>(标签)的传输.</td>
+</tr>
+<tr>
+	<td>/STATUS Waiting|Running|Complete</td>
+	<td>枚举具有特定状态的传输：<br>
+	<li><b>Waiting</b>: 仍在队列中等待的传输<br>
+	<li><b>Running</b>: 当前正在进行的传输。<br>
+	<li><b>Complete</b>: 完成/中止/失败的传输<br>
+	<br>
+	<b>注意:</b> 接受多个/STATUS参数。<br></li>
+	</td>
+</tr>
+<tr>
+	<td>/END</td>
+	<td>始终以此结束参数列表。<br>
+	<b>注意：此参数是必需的。</b><br>
+	</td>
+</tr>
+</table>
+<br>
+
+<hr>
+
+<h2><a name="cancel">NScurl::cancel</a> [/ID id] [/TAG tag] [/REMOVE]</h2>
+
+<h3>说明:</h3>
+取消（后台）传输，并可选择将它们从队列中移除。
+
+
+<h3>返回值:</h3>
+无返回值
+
+<h3>参数:</h3>
+<table>
+<tr>
+	<td>/ID id</td>
+	<td>取消特定的传输。<br>
+	传输ID由 <A href="#http">NScurl::http</A>  /BACKGROUND 返回</td>
+<tr>
+	<td>/TAG tag</td>
+	<td>取消带有相同<b>标签</b>的多个传输。<br>
+	详见 <A href="#http">NScurl::http</A> /TAG
+	</td>
+</tr>
+<tr>
+	<td>/REMOVE</td>
+	<td>除了取消，传输（们）还会被永久从队列中移除。<br>
+	进一步尝试使用 <A href="#query">NScurl::query</A>查询它们将失败<br>
+	</td>
+</tr>
+</table>
+<br>
+
+<hr>
+
+<h2><a name="escape">NScurl::escape</a> &lt;string&gt;<br>
+<a name="unescape">NScurl::unescape</a> &lt;string&gt;</h2>
+
+<h3>说明:</h3>
+用于对URL字符串进行转义和解转义的实用函数。<br>
+将非法的URL字符转换为 to/from 十六进制的%XX代码。<br>
+
+<h3>返回值:</h3>
+转义/解转义后的字符串被推送到堆栈。<br>
+
+<h3>示例:</h3>
+<div style="BACKGROUND-COLOR: #dddddd">
+<b><A href="#escape">NScurl::escape</A></b> "aaa bbb ccc=ddd&amp;eee"<br>
+Pop $0	; 返回  "aaa%20bbb%20ccc%3Dddd%26eee"<br>
+<br>
+<b><A href="#unescape">NScurl::unescape</A></b> $0<br>
+Pop $0	; 返回原始字符串<br>
+</div>
+<br>
+
+<hr>
+
+<h2><a name="md5">NScurl::md5</a> [-string|file|memory] &lt;data&gt;<br>
+<a name="sha1">NScurl::sha1</a> [-string|file|memory] &lt;data&gt;<br>
+<a name="sha256">NScurl::sha256</a> [-string|file|memory] &lt;data&gt;</h2>
+
+<h3>说明:</h3>
+计算 MD5/SHA1/SHA256 哈希的实用函数。<br>
+数据可以从文件中读取，也可以直接从内存中读取。<br>
+<b>注意:</b> 查看 <A href="#data">/DATA</A> 了解 <b>data</b> 的解释方式<br>
+
+<h3>返回值:</h3>
+哈希值（以十六进制字符串格式）推送到堆栈。<br>
+
+<h3>Examples:</h3>
+<div style="BACKGROUND-COLOR: #dddddd">
+<b><A href="#md5">NScurl::md5</A></b> "Hash this string"<br>
+Pop $0 ; 例如 "376630459092d7682c2a2e745d74aa6b"<br>
+<br>
+<b><A href="#md5">NScurl::md5</A></b> $EXEPATH<br>
+Pop $0  ; 例如 "93a52d04f7b56bc267d45bd95c6de49b"<br>
+<br>
+<b><A href="#sha1">NScurl::sha1</A></b> -file $EXEPATH<br>
+Pop $0	; 例如"faff487654d4dfa1deb5e5d462c8cf51b00a4acd"<br>
+<br>
+<b><A href="#sha1">NScurl::sha1</A></b> -string $EXEPATH /* Hash the file path as regular string */<br>
+Pop $0<br>
+<br>
+<b><A href="#sha256">NScurl::sha256</A></b> $EXEPATH<br>
+Pop $0	; 例如"e6fababe9530b1d5c4395ce0a1379c201ebb017997e4671a442a8410d1e2e6ac"<br>
+</div>
+<br>
+
+<hr>
+</BODY></HTML>

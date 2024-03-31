@@ -1,0 +1,210 @@
+ACCESS CONTROL PLUGIN
+
+由Mathias Hasselmann mathias@taschenorakel.de编写
+修改者：
+
+Afrow UK afrowuk@afrowsoft.co.uk
+AndersK anders_k@users.sf.net
+NSIS的AccessControl插件提供了一组与Windows NT访问控制列表（ACL）管理相关的函数。
+
+修改记录：
+
+*v1.0.8.3 - 2021年2月24日 - AndersK
+
+添加 /SID 开关
+*v1.0.8.2 - 2021年2月20日 - AndersK
+
+修复 GetRegKeyOwner
+*v1.0.8.1 - 2014年7月7日 - AndersK
+
+在更改所有者时不要求 SE_RESTORE_NAME 和 SE_TAKE_OWNERSHIP_NAME
+修复信托解析失败时的返回值
+*v1.0.8.0 - 2014年3月24日 - AndersK
+
+添加基本的String SID解析到模拟的ConvertStringSidToSid（在v1.0.6中损坏）
+修复WinNT4和Win95支持（Unicode DLL将不会在Win95上加载，但可能会在Win98上加载）
+修复ParseSid和ConvertSidToStringSid泄漏
+NameToSid和SidToName现在会推送“error”和错误详情
+更好的GetCurrentUserName错误处理（仍然返回有问题的“error”字符串）
+*v1.0.7.0 - 2012年2月25日 - Afrow UK
+
+修复 DisableFileInheritance（在v1.0.5.0中已损坏）。
+*v1.0.6.0 - 2012年1月26日 - Afrow UK
+
+为了与Windows NT4/ME（仅ANSI版本）向后兼容，编写了ConvertSidToStringSid/ConvertStringSidToSid的替代方案。
+在运行时加载RegSetKeySecurity/RegGetKeySecurity函数，以与Windows NT4/ME（仅ANSI版本）向后兼容。
+删除了注释掉的旧代码。
+*v1.0.5.0 - 2012年1月25日 - Afrow UK
+
+删除了 IsUserTheAdministrator。
+添加了 NameToSid。
+对代码进行了重大清理/重写。
+支持Proper Unicode构建（带有Unicode插件API）。
+支持64位注册表（SetRegView 64）。
+函数现在在成功时返回“ok”或在出现错误时返回“error”。对于“error”，堆栈中的下一项将是错误描述。
+添加了版本信息资源。
+
+2008年1月23日 - Afrow UK
+
+*添加了IsUserTheAdministrator函数。
+*清理了代码。重建为纯cpp，减小了DLL的大小。
+*不再使用全局临时变量来存储字符串。
+2008年1月7日 - Afrow UK
+
+修复了注册表说明。
+2007年11月8日 - Afrow UK
+
+更改了EnableInheritance/DisableInheritance函数的名称。
+添加了以下函数：
+EnableFileInheritance
+DisableFileInheritance
+EnableRegKeyInheritance
+DisableRegKeyInheritance
+GetFileOwner
+GetFileGroup
+GetRegKeyOwner
+GetRegKeyGroup
+ClearOnFile
+ClearOnRegKey
+GetCurrentUserName
+SidToName
+2007年8月21日 - Afrow UK
+
+*添加了/noinherit开关，防止子对象继承特定权限。
+*添加了EnableInheritance和DisableInheritance函数。
+*删除了打印安装日志中的代码。
+*2007年7月13日 - kichik
+
+*返回正确的错误代码（返回值而不是GetLastError()）。
+2006年6月30日 - Afrow UK
+
+删除了错误的MessageBox。
+错误消息现在只在NSIS堆栈中返回。
+------------------------------------
+
+约定
+=========================================================================================
+<filename>
+  有效的Windows(tm)文件名（例如 "C:\WINDOWS\"或 "\\ HOSTNAME\SHARE"）。
+<rootkey>
+  注册表键的已知根。定义了以下值：
+
+HKCR - HKEY_CLASSES_ROOT
+HKLM - HKEY_LOCAL_MACHINE
+HKCU - HKEY_CURRENT_USER
+HKU  - HKEY_USERS
+<regkey>
+  要更改的注册表名称（例如 "Software\Microsoft\Windows"）。
+<trustee>
+  有效的Windows(tm)帐户。帐户可以指定为相对帐户名称（例如 "Administrator" 或 "Everyone"）、限定帐户名称（例如 "Domain\Administrator"）或作为安全标识符（SID，例如 "(S-1-5-32-545)"）。"BUILTIN\USERS"也是有效的帐户名称。
+  要获取受信任的名称列表，请打开
+    控制面板>管理工具>计算机管理>
+    本地用户和组。
+  WinNT4使用ConvertStringSidToSid的模拟版本，仅支持以下SDDL字符串：AN、AU、BA、BU、IU、SY和WD。
+<permissions>
+  访问权限的组合（例如 "FullAccess" 或 "GenericRead + GenericWrite"）。
+  要获取访问权限的完整列表，请在Notepad中打开AccessControl.cpp源文件。
+/NOINHERIT
+确保指定的ACE（访问控制条目）不会被子节点继承（即针对目录或注册表键对象）。
+
+/SID
+不将返回的SID转换为名称/组。
+
+处理错误
+---------------
+
+处理错误时，请检查堆栈上的结果：
+
+AccessControl::SetOnRegKey HKLM Software\MyApp Stuart FullAccess
+Pop $R0
+${If} $R0 == error
+Pop $R0
+DetailPrint AccessControl error: $R0
+${EndIf}
+==============================================================================
+函数：
+===============================================================================
+GrantOnFile [/NOINHERIT] <filename> <trustee> <permissions>
+GrantOnRegKey [/NOINHERIT] <rootkey> <regkey> <trustee> <permissions>
+Pop $Result; “ok”或“error”+错误详细信息
+
+确保授权对象在该对象上获得请求的访问权限。
+
+SetOnFile [/NOINHERIT] <filename> <trustee> <permissions>
+SetOnRegKey [/NOINHERIT] <rootkey> <regkey> <trustee> <permissions>
+Pop $Result; “ok”或“error”+错误详细信息
+
+使用指定的访问权限替换授权对象在对象上的任何现有访问权限。
+
+ClearOnFile [/NOINHERIT] <filename> <trustee> <permissions>
+ClearOnRegKey [/NOINHERIT] <rootkey> <regkey> <trustee> <permissions>
+Pop $Result; “ok”或“error”+错误详细信息
+
+将对象上的所有授权对象替换为指定的授权对象和访问权限。
+
+DenyOnFile [/NOINHERIT] <filename> <trustee> <permissions>
+DenyOnRegKey [/NOINHERIT] <rootkey> <regkey> <trustee> <permissions>
+Pop $Result; “ok”或“error”+错误详细信息
+
+显式拒绝对象上的访问权限。
+
+RevokeOnFile [/NOINHERIT] <filename> <trustee> <permissions>
+RevokeOnRegKey [/NOINHERIT] <rootkey> <regkey> <trustee> <permissions>
+Pop $Result; “ok”或“error”+错误详细信息
+
+删除该对象以前定义的访问权限。请注意，即使继承了访问权限，它们也将被吊销。
+
+SetFileOwner <filename> <trustee>
+SetRegKeyOwner <rootkey> <regkey> <trustee>
+Pop $Result; “ok”或“error”+错误详细信息
+
+更改对象的所有者。
+
+GetFileOwner [/SID] <filename>
+GetRegKeyOwner [/SID] <rootkey> <regkey>
+Pop $Owner; 或“error”+错误详细信息
+
+获取对象的所有者。
+
+SetFileGroup <filename> <trustee>
+SetRegKeyGroup <rootkey> <regkey> <trustee>
+Pop $Result; “ok”或“error”+错误详细信息
+
+更改对象的主组。
+
+GetFileGroup [/SID] <filename>
+GetRegKeyGroup [/SID] <rootkey> <regkey>
+Pop $Group; 或“error”+错误详细信息
+
+获取对象的主组。
+
+EnableFileInheritance <filename>
+EnableRegKeyInheritance <rootkey> <regkey>
+Pop $Result; “ok”或“error”+错误详细信息
+
+启用父对象权限的继承。
+
+---------
+
+DisableFileInheritance <filename>
+DisableRegKeyInheritance <rootkey> <regkey>
+Pop $Result ; "ok" or "error" + error details
+
+禁用父对象权限的继承。
+
+SidToName <sidstring>
+Pop $Domain ; or "error"
+Pop $Username ; or error details
+
+将本地机器上的 SID 转换为相应的用户名和域名。
+
+NameToSid <username>
+Pop $SID ; or "error" + Pop error details
+
+获取本地机器上指定用户名的 SID。
+
+GetCurrentUserName
+Pop $Username ; or "error"
+
+获取运行安装程序的当前用户的用户名。
+---------

@@ -1,0 +1,10 @@
+Version History
+===============
+
+v0.0.4 - 20180605 (AndersK)
+* Started over from scratch for the 4th time.
++ Unicode build
+
+v0.0.3 - 20090111 (AndersK)
+---------------------------
+* Started over from scratch for the 3rd time.

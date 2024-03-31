@@ -1,0 +1,92 @@
+{{PageAuthor|Takhir}}
+
+== Links ==
+
+Download:<br>
+<attach>Nxs.zip</attach>
+
+[http://forums.winamp.com/showthread.php?threadid=211870 Forum thread]
+
+== Description ==
+
+nxs.dll is NSIS plug-in, displaying banner with progress bar and Cancel button. Finally this is re-worked saivert' "NxS MSI LoaderDlg" plug-in with better stability.
+ 
+== Command line (NSIS script) ==
+
+Plug-in entry points: Show, Update, Destroy, HasUserAborted, getWindow
+
+=== Show DLL Function ===
+
+ nxs::Show /NOUNLOAD "Dialog caption text" [/top "Top text"] [/sub "Sub text (more info)"]
+                                           [/h 1] [/pos 43] [/max 100] [/can 1] [/marquee 50] [/end]
+
+; /top
+: Sets the top text (to the right of the icon), 3 lines max.
+
+; /sub
+: Sets the subtext (above the progress bar control), 3 lines max.
+
+; /h
+: Shows/hides taskbar' dialog button.  Requires a number: 1 means hide. 0 means show.
+
+; /pos
+: Sets the progress bar position. From 0 to 100 or /max value.
+
+; /max
+: Sets the number of steps the progress bar control has. Default value is 100.
+
+; /can
+: Enables/disables Cancel button on dialog. Requires a number: 1 = enable, 0 = disable. Default is disabled.
+
+; /marquee
+: Enables/disables marquee style and bar speed. 0 removes marquee style, >0 defines move intervals in ms (for ex. 50).
+
+; /end
+: Stops stack reading. If not used, plug-in reads stack 'till the bottom' and uses last found string as the caption.
+
+=== Update DLL Function ===
+
+ nxs::Update /NOUNLOAD [... any of CHANGED Show parameters ...]
+
+Updates banner, supports any of Show parameters, but in most cases it is simpler - changed parameters only.
+
+=== getWindow DLL Function ===
+
+ nxs::getWindow /NOUNLOAD
+
+Returnes banner (dialog) window handle (HWND) use: Pop $0 ; $0 receives the handle. You don't need this in most cases :)
+
+=== HasUserAborted DLL Function ===
+
+ nxs::HasUserAborted /NOUNLOAD
+
+Checks if the Cancel button has been pressed, use: Pop $R0 ; $R0 value is "1" if user clicked Cancel or "0" (zero) otherwise.
+
+=== Destroy DLL Function ===
+
+ nxs::Destroy
+
+Destroys the dialog.
+
+
+== Examples ==
+
+Package includes few nsi scripts.
+<highlight-nsis>
+nxs::Show /NOUNLOAD `$(^Name) Setup` /top \
+                    `Setup installing something$\r$\nPlease wait...` \
+                     /sub `$\r$\n$\r$\n Preparing...` /h 0 /pos 0 \
+                     /can 1 /end
+; Add you initialization code here
+nxs::Update /NOUNLOAD /sub "$\r$\n$\r$\n 50% complite" /pos 50 /end
+; Add more code here
+nxs::Destroy
+</highlight-nsis>
+
+== Credits ==
+
+Many thanks to coauthors:
+saivert - base code.
+Instructor - idea to fix base code bugs :) ; all tests and included samples.
+
+[[Category:Plugins]]
