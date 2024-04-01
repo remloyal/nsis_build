@@ -102,8 +102,8 @@ Section -Post
 SectionEnd
 
 Function FindProcess
-  ;nsProcess::_FindProcess "${PRODUCT_NAME}.exe"
-  nsProcess::_FindProcess "NoTePad.exe"
+  nsProcess::_FindProcess "${PRODUCT_NAME}.exe"
+  ;nsProcess::_FindProcess "NoTePad.exe"
   Pop $R0
   ${If} $R0 == 0
     MessageBox MB_YESNO "$(RunPrompt)" IDYES label_yes  IDNO label_no
@@ -111,8 +111,8 @@ Function FindProcess
     Goto run
 	${EndIf}
   label_yes:
-    ;nsProcess::_KillProcess "${PRODUCT_NAME}.exe"
-    nsProcess::_KillProcess "NoTePad.exe"
+    nsProcess::_KillProcess "${PRODUCT_NAME}.exe"
+    ;nsProcess::_KillProcess "NoTePad.exe"
     Goto run
   label_no:
     Quit
@@ -192,7 +192,8 @@ SectionEnd
 
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function un.onInit
-  nsProcess::_FindProcess "NoTePad.exe"
+  ;nsProcess::_FindProcess "NoTePad.exe"
+  nsProcess::_FindProcess "${PRODUCT_NAME}.exe"
   Pop $R0
   ${If} $R0 == 0
     MessageBox MB_YESNO "$(RunPrompt)" IDYES label_yes  IDNO label_no
@@ -200,8 +201,8 @@ Function un.onInit
     Goto run
 	${EndIf}
   label_yes:
-    ;nsProcess::_KillProcess "${PRODUCT_NAME}.exe"
-    nsProcess::_KillProcess "NoTePad.exe"
+    nsProcess::_KillProcess "${PRODUCT_NAME}.exe"
+    ;nsProcess::_KillProcess "NoTePad.exe"
     Goto run
   label_no:
     Quit
