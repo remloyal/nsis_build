@@ -1,2 +1,3 @@
 OutFile/*.exe
 OutFile/*.blockmap
+OutFile/*.yml

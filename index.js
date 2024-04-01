@@ -1,37 +1,56 @@
 const fs = require("fs");
-const crypto = require("crypto");
+const path = require("path");
+const yaml = require("./js-yaml");
+// @ts-ignore
+const { exec } = require("child_process");
 
-function calculateFileHash(filePath) {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash("sha512");
-    const input = fs.createReadStream(filePath);
+const config = {
+  version: "1.3.0-9",
+  files: {
+    url: "",
+    sha512: "",
+    size: "",
+  },
+  path: "Frigga_Data_Center_1.3.0-9_.exe",
+  sha512: "",
+  releaseDate: "",
+};
 
-    input.on("error", reject);
+const filePath = `./OutFile/${config.path}`;
+const outPath = `./OutFile/${config.path}.blockmap`;
+const ymlPath = `./OutFile/${config.path}.latest.yml`;
+const buildBlockmapCmd = `${path.join(
+  process.cwd(),
+  "app-builder.exe"
+)}  blockmap -i ${path.join(process.cwd(), filePath)} -o  ${path.join(
+  process.cwd(),
+  outPath
+)} `;
 
-    input.on("data", (chunk) => {
-      hash.update(chunk);
-    });
+exec(buildBlockmapCmd, (error, stdout, stderr) => {
+  if (error) {
+    console.error(`执行命令时出错： ${error}`);
+    return;
+  }
+  // @ts-ignore
+  config.releaseDate = new Date();
+  const data = JSON.parse(stdout);
+  config.files = {
+    url: config.path,
+    sha512: data.sha512,
+    size: data.size,
+  };
+  config.sha512 = data.sha512;
 
-    input.on("end", () => {
-      const hashValue = hash.digest("hex");
-      resolve(hashValue);
-    });
-  });
-}
-
-// 示例用法
-const filePath = "./OutFile/Frigga_Data_Center_1.3.0-9_.exe";
-calculateFileHash(filePath)
-  .then((hash) => {
-    console.log("File SHA-512 hash:", hash);
-    // 将十六进制哈希值转换为Buffer对象
-    const hashBuffer = Buffer.from(hash, "hex");
-
-    // 使用Base64编码将Buffer对象转换为字符串
-    const base64Hash = hashBuffer.toString("base64");
-    console.log("Base64编码的哈希值:", base64Hash);
-    console.log("时间:", new Date());
-  })
-  .catch((error) => {
-    console.error("Error calculating file hash:", error);
-  });
+  console.log(config);
+  try {
+    // 将数据转换为YAML格式的字符串
+    const yamlData = yaml.dump(config, { lineWidth: -1 });
+    console.log(yamlData);
+    // 将数据写入YAML文件
+    fs.writeFileSync(ymlPath, yamlData, "utf8");
+    console.log("YAML文件已创建并写入数据。");
+  } catch (e) {
+    console.log(e);
+  }
+});
