@@ -75,7 +75,7 @@ ShowUnInstDetails show
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
-  SetOverwrite ifnewer
+  SetOverwrite on
   File ".\FilesToInstall\Frigga Data Center.exe"
   CreateDirectory "$SMPROGRAMS\Frigga Data Center"
   CreateShortCut "$SMPROGRAMS\Frigga Data Center\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
