@@ -3,7 +3,7 @@
 ; 安装程序初始定义常量
 !define PRODUCT_NAME "Frigga Data Center"
 !define PRODUCT_VERSION "1.3.0.0"
-!define PRODUCT_FILE_VERSION "1.3.0-9"
+!define PRODUCT_FILE_VERSION "1.3.0"
 !define PRODUCT_PUBLISHER "Frigga, Inc."
 !define PRODUCT_WEB_SITE "https://www.friggatech.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Frigga Data Center.exe"
@@ -75,12 +75,13 @@ ShowUnInstDetails show
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
-  SetOverwrite on
+  SetOverwrite try
   File ".\FilesToInstall\Frigga Data Center.exe"
   CreateDirectory "$SMPROGRAMS\Frigga Data Center"
   CreateShortCut "$SMPROGRAMS\Frigga Data Center\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
   CreateShortCut "$DESKTOP\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
   File /r ".\FilesToInstall\*.*"
+  Delete "$SMPROGRAMS\Frigga Data Center.lnk"
 SectionEnd
 
 Section -AdditionalIcons
@@ -237,8 +238,8 @@ VIProductVersion "${PRODUCT_VERSION}" ;版本号，格式为 X.X.X.X若使用则本条必须)
 VIAddVersionKey  "ProductName" "${PRODUCT_NAME}" ;产品名称
 VIAddVersionKey  "Comments" "${PRODUCT_NAME}" ;备注
 VIAddVersionKey  "CompanyName" "Frigga" ;公司名称
-VIAddVersionKey  "LegalTrademarks" "Test Application is a trademark of Fake company" ;合法商标
-VIAddVersionKey  "LegalCopyright" "Copyright (c2019 我的公司版权" ;合法版权
+; VIAddVersionKey  "LegalTrademarks" "Test Application is a trademark of Fake company" ;合法商标
+VIAddVersionKey  "LegalCopyright" "Copyright（C）2023" ;合法版权
 VIAddVersionKey  "FileDescription" "${PRODUCT_NAME}" ;文件描述(标准信息)
 VIAddVersionKey  "FileVersion" "${PRODUCT_FILE_VERSION}" ;文件版本
 VIAddVersionKey  "ProductVersion" "${PRODUCT_FILE_VERSION}" ;产品版本
