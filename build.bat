@@ -1,4 +1,5 @@
 echo Script stareTiem at %TIME% >> build_log.txt
+@REM call file.bat
 @REM "./nsis11/NSIS/makensis.exe"  demo.nsi
 "./NSIS/makensis.exe"  friggaDataCenter.nsi
 timeout /T 2 /NOBREAK
