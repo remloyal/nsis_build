@@ -18,7 +18,7 @@ rem 使用 7-Zip 命令行工具解压压缩包到目标文件夹
 "./crutch/7z.exe" x "%zipFile%" -o"%extractTo%"
 
 @REM 复制卸载程序
-copy ".\crutch\uninst.exe"  ".\FilesToInstall\"
+@REM copy ".\crutch\uninst.exe"  ".\FilesToInstall\"
 echo 解压完成！
 
 timeout /T 2 /NOBREAK

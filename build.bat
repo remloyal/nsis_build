@@ -2,6 +2,8 @@ echo Script stareTiem at %TIME% >> build_log.txt
 
 set "version=1.1.0"
 set "pkgVersion=1.1.0"
+@REM set "version=1.3.4-1"
+@REM set "pkgVersion=1.3.4"
 set "filePath=./OutFile/%version%"
 md "%filePath%"
 call file.bat %version% %pkgVersion%
