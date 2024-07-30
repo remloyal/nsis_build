@@ -2,4 +2,6 @@ OutFile/*.exe
 OutFile/*.blockmap
 OutFile/*.yml
 build_log.txt
-FilesToInstall/
+FilesToInstall/*
+package
+OutFile

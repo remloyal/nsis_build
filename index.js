@@ -4,29 +4,32 @@ const yaml = require("./js-yaml");
 // @ts-ignore
 const { exec } = require("child_process");
 
+const args = process.argv.slice(2);
+const version = args[0] || "1.0.0";
+
 const config = {
-  version: "1.3.0-9",
+  version: version,
   files: {
     url: "",
     sha512: "",
     size: "",
   },
-  path: "Frigga_Data_Center_1.3.0-9_.exe",
+  path: `Frigga_Data_Center_${version}.exe`,
   sha512: "",
   releaseDate: "",
 };
 
-const filePath = `./OutFile/${config.path}`;
-const outPath = `./OutFile/${config.path}.blockmap`;
-const ymlPath = `./OutFile/${config.path}.latest.yml`;
+const filePath = `./OutFile/${version}/${config.path}`;
+const outPath = `./OutFile/${version}/${config.path}.blockmap`;
+const ymlPath = `./OutFile/${version}/latest.yml`;
 const buildBlockmapCmd = `${path.join(
   process.cwd(),
-  "app-builder.exe"
+  "./crutch/app-builder.exe"
 )}  blockmap -i ${path.join(process.cwd(), filePath)} -o  ${path.join(
   process.cwd(),
   outPath
 )} `;
-
+console.log("cmd: ", buildBlockmapCmd);
 exec(buildBlockmapCmd, (error, stdout, stderr) => {
   if (error) {
     console.error(`执行命令时出错： ${error}`);

@@ -1,9 +1,21 @@
 echo Script stareTiem at %TIME% >> build_log.txt
-@REM call file.bat
+
+set "version=1.1.0"
+set "pkgVersion=1.1.0"
+set "filePath=./OutFile/%version%"
+md "%filePath%"
+call file.bat %version% %pkgVersion%
+
+@REM @REM 是否签名
+@REM call signature.bat FilesToInstall
+
 @REM "./nsis11/NSIS/makensis.exe"  demo.nsi
-"./NSIS/makensis.exe"  friggaDataCenter.nsi
+"./NSIS/makensis.exe" /DMy_version="%version%" build.nsi 
 timeout /T 2 /NOBREAK
 
-node index.js
+@REM call signature.bat %filePath%
+@REM timeout /T 2 /NOBREAK
+
+node index.js %version%
 @REM app-builder.exe  blockmap -i .\OutFile\Frigga_Data_Center_1.3.0-9_.exe -o ./OutFile/Frigga_Data_Center_1.3.0-9_.exe.blockmap
 echo Script endTiem at %TIME% >> build_log.txt
