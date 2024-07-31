@@ -1,5 +1,12 @@
-
-
+; ------ MUI 现代界面定义1.67 版本以上兼容) ------
+!include "MUI.nsh"
+!include "nsProcess.nsh"
+!include "Sections.nsh"
+!include "LogicLib.nsh"
+!include "textfunc.nsh"
+!include "UAC.nsh"
+!include "nsDialogs.nsh"
+!include "FileFunc.nsh"
 
 ; 获取命令行参数并定义常量
 !ifdef My_version
@@ -21,16 +28,23 @@
 
 ; 定义 GUID 变量
 !define MY_GUID "friggaDataCenter"
+
 Var POWER 
+Var Checkbox1
+Var Checkbox2
+Var ShowCustomPage
 
 SetCompressor lzma
+; !ifdef INSTALL_MODE_PER_ALL_USERS
+;   !ifdef BUILD_UNINSTALLER
+;     RequestExecutionLevel user
+;   !else
+;     RequestExecutionLevel admin
+;   !endif
+; !else
+;   RequestExecutionLevel user
+; !endif
 RequestExecutionLevel user
-; ------ MUI 现代界面定义1.67 版本以上兼容) ------
-!include "MUI.nsh"
-!include "nsProcess.nsh"
-!include "Sections.nsh"
-!include "LogicLib.nsh"
-!include "textfunc.nsh"
 
 ; MUI 预定义常量
 !define MUI_ABORTWARNING
@@ -47,6 +61,8 @@ RequestExecutionLevel user
 ; 欢迎页面
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW FindProcess
 !insertmacro MUI_PAGE_WELCOME
+
+Page custom nsDialogsPage onNext
 ; 安装目录选择页面
 ;!insertmacro MUI_PAGE_DIRECTORY
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW mulu
@@ -89,6 +105,18 @@ LangString Not_Supported ${LANG_Spanish} "El sistema actual no admite la instala
 LangString Permisos_Msg ${LANG_ENGLISH} "This directory requires administrator privileges. After installation, it will be launched by an administrator. Do you want to continue?"
 LangString Permisos_Msg ${LANG_SIMPCHINESE} "该目录需要管理员权限，安装后将用管理员进行启动，是否继续？"
 LangString Permisos_Msg ${LANG_Spanish} "?El catálogo requiere permisos de Administrador y se iniciará con un administrador después de la instalación, ? continuar?"
+
+LangString For_All ${LANG_ENGLISH} "Install for all users (will request administrator privileges)"
+LangString For_All ${LANG_SIMPCHINESE} "为所有用户安装（将请求管理员权限）"
+LangString For_All ${LANG_Spanish} "Instalar para todos los usuarios (se solicitarán permisos de administrador)"
+
+LangString For_User ${LANG_ENGLISH} "Install only for the current user"
+LangString For_User ${LANG_SIMPCHINESE} "仅为当前用户安装"
+LangString For_User ${LANG_Spanish} "Instalado solo para el usuario actual"
+
+LangString Powerless ${LANG_ENGLISH} "This directory requires administrator privileges, please select again"
+LangString Powerless ${LANG_SIMPCHINESE} "该目录需管理员权限，请重新选择"
+LangString Powerless ${LANG_Spanish} "El catálogo requiere permisos de administrador, por favor vuelva a seleccionarlo"
 
 ; 安装预释放文件
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -138,7 +166,7 @@ Section -Post
 
 
   
-  Call GrepFunc
+  ; Call GrepFunc
   ; Pop $0
 	${If} $POWER == "1"
     ; AccessControl::GrantOnFile "$INSTDIR\demo.exe" "BUILTIN\Users" "Read Execute"
@@ -212,10 +240,29 @@ FunctionEnd
 
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function .onInit
-	Call setPath
-  !insertmacro MUI_LANGDLL_DISPLAY
+  Call setPath
+  
+  ReadINIStr $1 "$Temp\params.ini" "Settings" "Param1"
+  ${If}  $1 == "admin"
+    ; 在这里根据需要设置 $ShowCustomPage 的值
+    ; 这里设置为 1 来显示页面，设置为 0 来隐藏页面
+    StrCpy $ShowCustomPage 1
+    Delete "$Temp\params.ini"
+  ${else}
+    StrCpy $ShowCustomPage 0
+    !insertmacro MUI_LANGDLL_DISPLAY
+  ${EndIf}
+
+	
   ;!insertmacro FindProcess
   ; Call FindProcess
+  
+FunctionEnd
+
+; 检测安装退出
+Function .onGUIEnd
+  ; MessageBox MB_OK|MB_ICONEXCLAMATION "安装应用退出"
+  Delete "$Temp\params.ini"
 FunctionEnd
 
 Var isSetpath
@@ -239,6 +286,7 @@ Function setPath
 	  ; 如果$0为空，则执行这里的逻辑
     ;MessageBox MB_OK "注册表值为空"
 	${EndIf}
+
   ${If} ${FileExists} "D:"
     ; 判断D盘是否存在
 
@@ -252,17 +300,6 @@ Function setPath
 FunctionEnd
 
 Function mulu
-  GetWinVer $0 Major
-  GetWinVer $1 Build
-  ; MessageBox MB_OK "$0"
-  ; MessageBox MB_OK "$1"
-  ${If} $0 <= 10        ;除非 Win10 或以上
-    ${If} $1 < 14393  ;并且 Build >= 19042
-      MessageBox MB_OK "$(Not_Supported)"
-      Quit
-    ${EndIf}
-  ${EndIf}
-
   ${If} $isSetpath != ""
     ;禁用浏览按钮
 		FindWindow $0 "#32770" "" $HWNDPARENT
@@ -301,73 +338,88 @@ Function mulu
 
   ${EndIf}
 FunctionEnd
-; Function .onSelChange
-;     ; 当用户在 MUI_PAGE_DIRECTORY 页面选择目录时会触发这个回调函数
-;     ; ReadEnvStr $0 "APPDATA" ; 示例：读取系统环境变量，这里是 APPDATA
-;     ; DetailPrint "Selected directory: $0"
-;     MessageBox MB_OK $INSTDIR 
-; FunctionEnd
 
 Function Juicio
-  Call GrepFunc
-  
-  ; AccessControl::GrantOnFile"$INSTDIR""(BU)""GenericRead + GenericWrite"
-  ; ClearErrors
-  ; FileOpen $0 "D:\tmp.txt" w
-  ; IfErrors fileOpenError
-  ; FileWrite $0 "Hello, this is an example text file created during installation."
-  ; IfErrors fileOpenError
-  ; FileClose $0
-  ; IfErrors fileOpenError
-  ; MessageBox MB_OK "File created successfully!"
-  ; Goto done
-  ; fileOpenError:
-  ;   SendMessage $HWNDPARENT 0x408 -1 0
-  ;   MessageBox MB_OK|MB_ICONSTOP "该目录无权写入"
-  ;   abort
-  ; done:
-  ;   Delete "D:\tmp.txt"
-  ClearErrors
-  FileOpen $R0 '$instdir\tmp.txt' w
-  IfErrors false true
-  true:
-    
-  false:
-    MessageBox MB_OK|MB_ICONSTOP '该目录无权写入'
-    SendMessage $HWNDPARENT 0x408 -1 0
-    Abort
-  FileClose $R0
-  Delete '$instdir\tmp.txt'
-  
-  
+  ; Call GrepFunc
 
-  ; ${If} $POWER == "1"
-  ;   MessageBox MB_YESNO|MB_ICONQUESTION "$(Permisos_Msg)" IDYES true IDNO false
-  ;   true:
-  ;     Goto next
-  ;   false:
-  ;     SendMessage $HWNDPARENT 0x408 -1 0
-  ;     Abort
-  ;   next:
-  ;     ; DetailPrint "it's false"
-  ; ${EndIf}
-  ; MessageBox MB_OK $INSTDIR 
-  ; SendMessage $HWNDPARENT 0x408 -1 0
-  ; GetDlgItem $0 $HWNDPARENT 1 ; 获取父窗口的句柄
-  ; SendMessage $0 ${WM_COMMAND} 0 1 ; 模拟点击“Next”按钮，返回到上一个页面
-  ; SendMessage $hWndParent "${WM_NOTIFY} 0 `$$\0" ""
-  ; Abort
-  ; ${If} $INSTDIR == "C:\Users\Frigga"
-  ;     StrCpy $INSTDIR "C:\Frigga"
-  ;     SetOutPath $INSTDIR
-  ;     StrCpy $isSetpath "C:\Frigga"
-  ;     MessageBox MB_OK "不允许安装在用户根目录下"
-	; ${Else}
-	;   ; 如果$0为空，则执行这里的逻辑
-  ;   ;MessageBox MB_OK "注册表值为空"
-    
-	; ${EndIf}
+  ClearErrors
+  CreateDirectory "$INSTDIR\ceshiqwertasd"
+  IfErrors fileOpenError fileOpenSuccess
+fileOpenError:
+  MessageBox MB_OK|MB_ICONSTOP "$(Powerless)"
+  SendMessage $HWNDPARENT 0x408 -1 0
+  abort
+fileOpenSuccess:
+  ; MessageBox MB_OK|MB_ICONSTOP "写入成功"
+  SendMessage $HWNDPARENT 0x408 -1 0
+  Goto done
+done:
+  Delete "$INSTDIR\ceshiqwertasd"
+  RMDir /r "$INSTDIR\ceshiqwertasd"
+
 FunctionEnd
+
+
+; 自定义页面
+Function nsDialogsPage
+  GetWinVer $0 Major
+  GetWinVer $1 Build
+  ; MessageBox MB_OK "$0"
+  ; MessageBox MB_OK "$1"
+  ${If} $0 <= 10        ;除非 Win10 或以上
+    ${If} $1 < 14393  ;并且 Build >= 19042
+      MessageBox MB_OK "$(Not_Supported)"
+      Quit
+    ${EndIf}
+  ${EndIf}
+
+  ; 管理员则
+  ${If} $ShowCustomPage == 1
+    ; SendMessage $HWNDPARENT 0x408 1 0
+    abort
+  ${EndIf}
+
+  nsDialogs::Create 1018
+
+  ${NSD_CreateRadioButton} 15% 20% 100% 20u "$(For_User)"
+  Pop $Checkbox1
+  ${NSD_CreateRadioButton} 15% 60% 100% 20u "$(For_All)"
+  Pop $Checkbox2
+
+  ${NSD_Check}   $Checkbox1
+  ${NSD_OnClick} $Checkbox1 OnRadioButtonClick1
+  ${NSD_OnClick} $Checkbox2 OnRadioButtonClick2
+
+  nsDialogs::Show
+FunctionEnd
+
+Function onNext
+    ${If} $Checkbox1 == "on"
+        ;MessageBox MB_OK "选择了为当前用户安装,安装过程正常继续"
+        StrCpy $0 "user"
+        WriteINIStr "$Temp\params.ini" "Settings" "Param1" $0
+    ${ElseIf} $Checkbox2 == "on"
+        ${IfNot} ${UAC_IsAdmin}
+          ShowWindow $HWNDPARENT ${SW_HIDE}
+          StrCpy $0 "admin"
+          WriteINIStr "$Temp\params.ini" "Settings" "Param1" $0
+          !insertmacro UAC_RunElevated
+          Quit
+        ${endif}
+    ${EndIf}
+FunctionEnd
+
+Function OnRadioButtonClick1
+    StrCpy $Checkbox1 "on"
+    StrCpy $Checkbox2 "off"
+FunctionEnd
+
+Function OnRadioButtonClick2
+    StrCpy $Checkbox1 "off"
+    StrCpy $Checkbox2 "on"
+FunctionEnd
+
+
 Section Uninstall
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
@@ -407,6 +459,8 @@ SectionEnd
 
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function un.onInit
+  MessageBox MB_OK|MB_ICONEXCLAMATION "$ShowCustomPage"
+  
   ;nsProcess::_FindProcess "NoTePad.exe"
   nsProcess::_FindProcess "${PRODUCT_NAME}.exe"
   Pop $R0
@@ -451,7 +505,6 @@ Function un.onUninstSuccess
   ;   MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) 已成功地从您的计算机移除。"
   ; END:
   MessageBox MB_ICONINFORMATION|MB_OK "$(UNINSTALL_CONFIRM)"
-
 FunctionEnd
 
 VIProductVersion "${PRODUCT_VERSION}" ;版本号，格式为 X.X.X.X若使用则本条必须)
