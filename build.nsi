@@ -33,17 +33,10 @@ Var POWER
 Var Checkbox1
 Var Checkbox2
 Var ShowCustomPage
+; 是否为更新 1 为覆盖更新， 0为安装
+Var IsRenew
 
 SetCompressor lzma
-; !ifdef INSTALL_MODE_PER_ALL_USERS
-;   !ifdef BUILD_UNINSTALLER
-;     RequestExecutionLevel user
-;   !else
-;     RequestExecutionLevel admin
-;   !endif
-; !else
-;   RequestExecutionLevel user
-; !endif
 RequestExecutionLevel user
 
 ; MUI 预定义常量
@@ -62,7 +55,7 @@ RequestExecutionLevel user
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW FindProcess
 !insertmacro MUI_PAGE_WELCOME
 
-Page custom nsDialogsPage onNext
+; Page custom nsDialogsPage onNext
 ; 安装目录选择页面
 ;!insertmacro MUI_PAGE_DIRECTORY
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW mulu
@@ -118,6 +111,18 @@ LangString Powerless ${LANG_ENGLISH} "This directory requires administrator priv
 LangString Powerless ${LANG_SIMPCHINESE} "该目录需管理员权限，请重新选择"
 LangString Powerless ${LANG_Spanish} "El catálogo requiere permisos de administrador, por favor vuelva a seleccionarlo"
 
+LangString Powerless_Admin ${LANG_ENGLISH} "This directory requires administrator privileges. Do you want to request it?"
+LangString Powerless_Admin ${LANG_SIMPCHINESE} "该目录需管理员权限，是否请求？"
+LangString Powerless_Admin ${LANG_Spanish} "?El catálogo requiere permisos de administrador, ? se solicita?"
+
+LangString Install_Options ${LANG_ENGLISH} "Install options"
+LangString Install_Options ${LANG_SIMPCHINESE} "安装选项"
+LangString Install_Options ${LANG_Spanish} "Opciones de instalación"
+
+LangString Install_Item ${LANG_ENGLISH} "For which user should I install this application?"
+LangString Install_Item ${LANG_SIMPCHINESE} "为哪位用户安装该应用？"
+LangString Install_Item ${LANG_Spanish} "?? para qué usuario se instala la aplicación?"
+
 ; 安装预释放文件
 !insertmacro MUI_RESERVEFILE_LANGDLL
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
@@ -125,7 +130,7 @@ LangString Powerless ${LANG_Spanish} "El catálogo requiere permisos de administ
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile ".\OutFile\${PRODUCT_FILE_VERSION}\Frigga_Data_Center_${PRODUCT_FILE_VERSION}.exe"
-InstallDir "D:\Program Files\Frigga"
+InstallDir "$LOCALAPPDATA\Frigga"
 InstallDirRegKey HKCU "${PRODUCT_UNINST_KEY}" "UninstallString"
 ShowInstDetails show
 ShowUnInstDetails show
@@ -139,7 +144,7 @@ Section "MainSection" SEC01
   CreateShortCut "$SMPROGRAMS\Frigga Data Center\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
   CreateShortCut "$DESKTOP\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
   File /r ".\FilesToInstall\*.*"
-  Delete "$SMPROGRAMS\Frigga Data Center.lnk"
+  ; Delete "$SMPROGRAMS\Frigga Data Center.lnk"
 SectionEnd
 
 Section -AdditionalIcons
@@ -151,6 +156,7 @@ SectionEnd
 Section -Post
   ; 是否输出卸载程序   用于签名
   WriteUninstaller "$INSTDIR\uninst.exe"
+
   WriteRegStr HKCU "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${EXE_NAME}"
   ; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayName" "$(^Name)"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayName" "Frigga Data Center"
@@ -159,64 +165,29 @@ Section -Post
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
-
-
   WriteRegStr HKCU "Software\${MY_GUID}" "InstallLocation" "$INSTDIR"
-  WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+  ${if} $ShowCustomPage == 1
+    ; StrCpy $key_value "HKLM"
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
+  ${Else}
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+  ${EndIf}
 
-
-  
   ; Call GrepFunc
   ; Pop $0
-	${If} $POWER == "1"
-    ; AccessControl::GrantOnFile "$INSTDIR\demo.exe" "BUILTIN\Users" "Read Execute"
-    ; AccessControl::GrantOnFile "$INSTDIR\uninst.exe" "BUILTIN\Users" "Read Execute"
-    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
-    ; MessageBox MB_OK|MB_ICONEXCLAMATION "点击的是确定"
-	${Else}
-    ; AccessControl::GrantOnFile "$INSTDIR\demo.exe" "BUILTIN\Administrators" "FullControl"
-    ; AccessControl::GrantOnFile "$INSTDIR\uninst.exe" "BUILTIN\Administrators" "FullControl"
-    ; WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Renew Tool.exe" "RUNASADMIN"
-    ; MessageBox MB_OK|MB_ICONEXCLAMATION "点击的是取消"
-	${EndIf}
+	; ${If} $POWER == "1"
+  ;   ; AccessControl::GrantOnFile "$INSTDIR\demo.exe" "BUILTIN\Users" "Read Execute"
+  ;   ; AccessControl::GrantOnFile "$INSTDIR\uninst.exe" "BUILTIN\Users" "Read Execute"
+  ;   WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
+  ;   ; MessageBox MB_OK|MB_ICONEXCLAMATION "点击的是确定"
+	; ${Else}
+  ;   ; AccessControl::GrantOnFile "$INSTDIR\demo.exe" "BUILTIN\Administrators" "FullControl"
+  ;   ; AccessControl::GrantOnFile "$INSTDIR\uninst.exe" "BUILTIN\Administrators" "FullControl"
+  ;   ; WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Renew Tool.exe" "RUNASADMIN"
+  ;   ; MessageBox MB_OK|MB_ICONEXCLAMATION "点击的是取消"
+	; ${EndIf}
 SectionEnd
-
-Function GrepFunc
-    ; Var /GLOBAL POWER
-    ${TrimNewLines} '$INSTDIR' $R9
-    System::Call "Shlwapi::StrStr(tR9, t`C:\Program Files`)i .r0"
-    ${if} $0 != 0
-        ;  Push "1"
-         StrCpy $POWER "1"
-    ${else}
-        ;  Push '0'
-        StrCpy $POWER "0"
-        System::Call "Shlwapi::StrStr(tR9, t`C:\Windows`)i .r1"
-        ${if} $1 != 0
-            StrCpy $POWER "1"
-        ${else}
-            StrCpy $POWER "0"
-            System::Call "Shlwapi::StrStr(tR9, t`C:\ProgramData`)i .r2"
-            ${if} $2 != 0
-                StrCpy $POWER "1"
-            ${else}
-                StrCpy $POWER "0"
-                System::Call "Shlwapi::StrStr(tR9, t`C:\PerfLogs`)i .r2"
-                ${if} $2 != 0
-                    StrCpy $POWER "1"
-                ${else}
-                    StrCpy $POWER "0"
-                    System::Call "Shlwapi::StrStr(tR9, t`C:\Users`)i .r3"
-                    ${if} $3 != 0
-                        StrCpy $POWER "1"
-                    ${else}
-                        StrCpy $POWER "0"
-                    ${endIf}
-                ${endIf}
-            ${endIf}
-        ${endIf}
-   ${endIf}
-FunctionEnd
 
 Function FindProcess
   StrCpy $POWER "0"
@@ -240,20 +211,40 @@ FunctionEnd
 
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function .onInit
+  StrCpy $IsRenew 0
+  ; 检测系统版本
+  GetWinVer $0 Major
+  GetWinVer $1 Build
+  ; MessageBox MB_OK "$0"
+  ; MessageBox MB_OK "$1"
+  ${If} $0 <= 10        ;除非 Win10 或以上
+    ${If} $1 < 14393  ;并且 Build >= 19042
+      MessageBox MB_OK "$(Not_Supported)"
+      Quit
+    ${EndIf}
+  ${EndIf}
+
   Call setPath
-  
   ReadINIStr $1 "$Temp\params.ini" "Settings" "Param1"
+  ReadINIStr $2 "$Temp\params.ini" "Settings" "Path"
+  ; MessageBox MB_OK "缓存路径： $2"
   ${If}  $1 == "admin"
     ; 在这里根据需要设置 $ShowCustomPage 的值
     ; 这里设置为 1 来显示页面，设置为 0 来隐藏页面
     StrCpy $ShowCustomPage 1
+    ${If} $2 != ""
+      StrCpy $INSTDIR "$2"
+      SetOutPath $INSTDIR
+      ; StrCpy $isSetpath "$2"
+    ${EndIf}
     Delete "$Temp\params.ini"
-  ${else}
+    ; !define INSTALL_MODE_PER_ALL_USERS "admin"
+  ${Else}
     StrCpy $ShowCustomPage 0
     !insertmacro MUI_LANGDLL_DISPLAY
   ${EndIf}
+  
 
-	
   ;!insertmacro FindProcess
   ; Call FindProcess
   
@@ -268,38 +259,46 @@ FunctionEnd
 Var isSetpath
 Function setPath
   ReadRegStr $0 HKCU "Software\${MY_GUID}" "InstallLocation"
+  ReadRegStr $1 HKLM "Software\${MY_GUID}" "InstallLocation"
+  ; MessageBox MB_OK "HKCU $0 "
+  ; MessageBox MB_OK "HKLM $1 "
   ${If} $0 != ""
     ; 如果$0不为空，则执行这里的逻辑
     StrCpy $INSTDIR "$0"
     SetOutPath $INSTDIR
     StrCpy $isSetpath "$0"
-
+    StrCpy $IsRenew 1
 	  ;MessageBox MB_OK "注册表值为0: $0"
-	;${ElseIf} $1 != ""
-	;	; 如果$1不为空，则执行这里的逻辑
-    ;StrCpy $INSTDIR "$1"
-    ;SetOutPath $INSTDIR
-    ;StrCpy $isSetpath "$1"
-
-	  ;MessageBox MB_OK "注册表值为1: $1"
+	; ${ElseIf} $1 != ""
+	; 	; 
+  ;   StrCpy $INSTDIR "$1"
+  ;   SetOutPath $INSTDIR
+  ;   StrCpy $isSetpath "$1"
+  ;   StrCpy $IsRenew 1
+    
+	;   MessageBox MB_OK "注册表值为1: $1"
 	${Else}
 	  ; 如果$0为空，则执行这里的逻辑
     ;MessageBox MB_OK "注册表值为空"
+    StrCpy $IsRenew 0
 	${EndIf}
 
-  ${If} ${FileExists} "D:"
-    ; 判断D盘是否存在
+  ; ${If} ${FileExists} "D:"
+  ;   ; 判断D盘是否存在
 
-  ${Else}
-    ; 不存在 ，设置为c盘
-    StrCpy $INSTDIR "C:\Frigga"
-    SetOutPath $INSTDIR
-    StrCpy $isSetpath "C:\Frigga"
+  ; ${Else}
+  ;   ; 不存在 ，设置为c盘
+  ;   StrCpy $INSTDIR "C:\Frigga"
+  ;   SetOutPath $INSTDIR
+  ;   StrCpy $isSetpath "C:\Frigga"
 
-  ${EndIf}
+  ; ${EndIf}
 FunctionEnd
 
 Function mulu
+  ; ReadRegStr $9 HKLM "SOFTWARE\GitForWindows" "InstallPath"
+  ; MessageBox MB_OK "$INSTDIR"
+
   ${If} $isSetpath != ""
     ;禁用浏览按钮
 		FindWindow $0 "#32770" "" $HWNDPARENT
@@ -315,6 +314,7 @@ Function mulu
     
 	${EndIf}
 
+  ; 检测目录的exe是否存在
   ${If} ${FileExists} "$INSTDIR\${EXE_NAME}"
     ; StrCpy $InstDir "C:\Cisco Systems\VPN Client\Profiles"
     ; exe文件存在 禁止选择
@@ -346,12 +346,23 @@ Function Juicio
   CreateDirectory "$INSTDIR\ceshiqwertasd"
   IfErrors fileOpenError fileOpenSuccess
 fileOpenError:
-  MessageBox MB_OK|MB_ICONSTOP "$(Powerless)"
-  SendMessage $HWNDPARENT 0x408 -1 0
+  MessageBox MB_YESNO "$(Powerless_Admin)" IDYES label_yes  IDNO label_no
+    label_yes:
+      ${IfNot} ${UAC_IsAdmin}
+        ShowWindow $HWNDPARENT ${SW_HIDE}
+        StrCpy $0 "admin"
+        WriteINIStr "$Temp\params.ini" "Settings" "Param1" $0
+        WriteINIStr "$Temp\params.ini" "Settings" "Path" $INSTDIR
+        !insertmacro UAC_RunElevated
+        Quit
+      ${endif}
+    label_no:
+      SendMessage $HWNDPARENT 0x408 -1 0
+      abort
   abort
 fileOpenSuccess:
   ; MessageBox MB_OK|MB_ICONSTOP "写入成功"
-  SendMessage $HWNDPARENT 0x408 -1 0
+  ; SendMessage $HWNDPARENT 0x408 -1 0
   Goto done
 done:
   Delete "$INSTDIR\ceshiqwertasd"
@@ -362,6 +373,7 @@ FunctionEnd
 
 ; 自定义页面
 Function nsDialogsPage
+  ; 检测系统版本
   GetWinVer $0 Major
   GetWinVer $1 Build
   ; MessageBox MB_OK "$0"
@@ -372,18 +384,26 @@ Function nsDialogsPage
       Quit
     ${EndIf}
   ${EndIf}
+  ; Call setPath
 
-  ; 管理员则
+  ; 管理员 跳过该页面
   ${If} $ShowCustomPage == 1
     ; SendMessage $HWNDPARENT 0x408 1 0
     abort
   ${EndIf}
 
-  nsDialogs::Create 1018
+  ; 覆盖更新 跳过该页面
+  ${If} $IsRenew == 1
+    abort
+  ${EndIf}
 
+  !insertmacro MUI_HEADER_TEXT "$(Install_Options)" "$(Install_Item)"
+  nsDialogs::Create 1018
+  ; ${NSD_CreateLabel} 0 0 100% 12u "Hello, welcome to nsDialogs!"
+  ; Pop $Label
   ${NSD_CreateRadioButton} 15% 20% 100% 20u "$(For_User)"
   Pop $Checkbox1
-  ${NSD_CreateRadioButton} 15% 60% 100% 20u "$(For_All)"
+  ${NSD_CreateRadioButton} 15% 40% 100% 20u "$(For_All)"
   Pop $Checkbox2
 
   ${NSD_Check}   $Checkbox1
@@ -446,8 +466,13 @@ Section Uninstall
   DeleteRegKey HKLM "SOFTWARE\${MY_GUID}"
 
   DeleteRegKey HKLM "SOFTWARE\WOW6432Node\${MY_GUID}"
+  DeleteRegKey HKCU "SOFTWARE\WOW6432Node\${MY_GUID}"
+
   DeleteRegValue HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
   DeleteRegValue HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
+
+  DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
+  DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
 
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -477,7 +502,7 @@ Function un.onInit
     Quit
   run:
   ; MessageBox MB_OK $LANGUAGE
-  !insertmacro MUI_UNGETLANGUAGE
+  ; !insertmacro MUI_UNGETLANGUAGE
   ; MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(^UninstAsk)" IDYES +2
   ; Abort
   ; !insertmacro MUI_UNGETLANGUAGE
