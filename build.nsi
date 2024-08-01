@@ -87,6 +87,14 @@ LangString NoButton ${LANG_ENGLISH} "No"
 LangString YesButton ${LANG_Spanish} "Sí."
 LangString NoButton ${LANG_Spanish} "No"
 
+LangString YesLabel ${LANG_ENGLISH} "Yes"
+LangString YesLabel ${LANG_SPANISH} "Sí"
+LangString YesLabel ${LANG_SimpChinese} "是"
+; Add more languages as needed
+LangString NoLabel ${LANG_ENGLISH} "No"
+LangString NoLabel ${LANG_SPANISH} "No"
+LangString NoLabel ${LANG_SimpChinese} "否"
+
 LangString UNINSTALL_CONFIRM ${LANG_ENGLISH} "Thank you very much! ${PRODUCT_NAME} has been successfully removed."
 LangString UNINSTALL_CONFIRM ${LANG_SIMPCHINESE} "非常感謝您的使用！ ${PRODUCT_NAME} 已成功地从您的计算机中移除。"
 LangString UNINSTALL_CONFIRM ${LANG_Spanish} "?Muchas gracias por su uso!  ${PRODUCT_NAME} ha sido eliminado con éxito de su computadora."
@@ -158,6 +166,7 @@ Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
 
   WriteRegStr HKCU "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${EXE_NAME}"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${EXE_NAME}"
   ; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayName" "$(^Name)"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayName" "Frigga Data Center"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
@@ -166,27 +175,15 @@ Section -Post
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   WriteRegStr HKCU "Software\${MY_GUID}" "InstallLocation" "$INSTDIR"
+
   ${if} $ShowCustomPage == 1
     ; StrCpy $key_value "HKLM"
-    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+    ; WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
     WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
-  ${Else}
-    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+  ; ${Else}
+  ;   WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
   ${EndIf}
-
-  ; Call GrepFunc
-  ; Pop $0
-	; ${If} $POWER == "1"
-  ;   ; AccessControl::GrantOnFile "$INSTDIR\demo.exe" "BUILTIN\Users" "Read Execute"
-  ;   ; AccessControl::GrantOnFile "$INSTDIR\uninst.exe" "BUILTIN\Users" "Read Execute"
-  ;   WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
-  ;   ; MessageBox MB_OK|MB_ICONEXCLAMATION "点击的是确定"
-	; ${Else}
-  ;   ; AccessControl::GrantOnFile "$INSTDIR\demo.exe" "BUILTIN\Administrators" "FullControl"
-  ;   ; AccessControl::GrantOnFile "$INSTDIR\uninst.exe" "BUILTIN\Administrators" "FullControl"
-  ;   ; WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Renew Tool.exe" "RUNASADMIN"
-  ;   ; MessageBox MB_OK|MB_ICONEXCLAMATION "点击的是取消"
-	; ${EndIf}
+  WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
 SectionEnd
 
 Function FindProcess
@@ -346,7 +343,7 @@ Function Juicio
   CreateDirectory "$INSTDIR\ceshiqwertasd"
   IfErrors fileOpenError fileOpenSuccess
 fileOpenError:
-  MessageBox MB_YESNO "$(Powerless_Admin)" IDYES label_yes  IDNO label_no
+  MessageBox MB_YESNO|MB_ICONQUESTION "$(Powerless_Admin)" IDYES label_yes  IDNO label_no
     label_yes:
       ${IfNot} ${UAC_IsAdmin}
         ShowWindow $HWNDPARENT ${SW_HIDE}
@@ -460,7 +457,7 @@ Section Uninstall
   DeleteRegKey HKCU "${PRODUCT_DIR_REGKEY}"
 
   DeleteRegKey HKCU "${PRODUCT_UNINST_KEY}"
-  DeleteRegKey HKCU "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
 
   DeleteRegKey HKCU "SOFTWARE\${MY_GUID}"
   DeleteRegKey HKLM "SOFTWARE\${MY_GUID}"
@@ -477,16 +474,17 @@ Section Uninstall
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
   ; 递归删除 Property 文件夹及其内容  
-  RMDir /r "$1"  
-  StrCpy $1 "$LOCALAPPDATA\Property"  
+  ; RMDir /r "$1"  
+  ; StrCpy $1 "$LOCALAPPDATA\Property"  
   SetAutoClose true
 SectionEnd
 
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function un.onInit
-  MessageBox MB_OK|MB_ICONEXCLAMATION "$ShowCustomPage"
+  ; MessageBox MB_OK|MB_ICONEXCLAMATION "$ShowCustomPage"
   
   ;nsProcess::_FindProcess "NoTePad.exe"
+  ; !insertmacro MUI_UNGETLANGUAGE
   nsProcess::_FindProcess "${PRODUCT_NAME}.exe"
   Pop $R0
   ${If} $R0 == 0
@@ -505,7 +503,7 @@ Function un.onInit
   ; !insertmacro MUI_UNGETLANGUAGE
   ; MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(^UninstAsk)" IDYES +2
   ; Abort
-  ; !insertmacro MUI_UNGETLANGUAGE
+  !insertmacro MUI_UNGETLANGUAGE
   ; StrCmp $LANGUAGE 2052 ZH_INI EN_INI
   ; EN_INI:
   ; MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^ Name) and all its components?" IDYES +2
