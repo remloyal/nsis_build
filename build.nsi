@@ -95,6 +95,10 @@ LangString NoLabel ${LANG_ENGLISH} "No"
 LangString NoLabel ${LANG_SPANISH} "No"
 LangString NoLabel ${LANG_SimpChinese} "否"
 
+LangString UNINSTALL_TEXT ${LANG_ENGLISH} "Are you sure you want to completely remove Frigga Data Center and all its components?"
+LangString UNINSTALL_TEXT ${LANG_SIMPCHINESE} "您确实要完全移除Frigga Data Center 及其所有的组件？"
+LangString UNINSTALL_TEXT ${LANG_Spanish} "?? está seguro de que quiere eliminar por completo el Frigga Data Center y todos sus componentes?"
+
 LangString UNINSTALL_CONFIRM ${LANG_ENGLISH} "Thank you very much! ${PRODUCT_NAME} has been successfully removed."
 LangString UNINSTALL_CONFIRM ${LANG_SIMPCHINESE} "非常感謝您的使用！ ${PRODUCT_NAME} 已成功地从您的计算机中移除。"
 LangString UNINSTALL_CONFIRM ${LANG_Spanish} "?Muchas gracias por su uso!  ${PRODUCT_NAME} ha sido eliminado con éxito de su computadora."
@@ -131,6 +135,10 @@ LangString Install_Item ${LANG_ENGLISH} "For which user should I install this ap
 LangString Install_Item ${LANG_SIMPCHINESE} "为哪位用户安装该应用？"
 LangString Install_Item ${LANG_Spanish} "?? para qué usuario se instala la aplicación?"
 
+LangString Parity_App ${LANG_ENGLISH} "This directory is suspected to contain the same application. Do you want to continue installing?"
+LangString Parity_App ${LANG_SIMPCHINESE} "该目录疑似存在相同应用，是否继续安装？"
+LangString Parity_App ${LANG_Spanish} "?Se sospecha que el catálogo tiene la misma aplicación, ? continúa instalando?"
+
 ; 安装预释放文件
 !insertmacro MUI_RESERVEFILE_LANGDLL
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
@@ -140,8 +148,8 @@ Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile ".\OutFile\${PRODUCT_FILE_VERSION}\Frigga_Data_Center_${PRODUCT_FILE_VERSION}.exe"
 InstallDir "$LOCALAPPDATA\Frigga"
 InstallDirRegKey HKCU "${PRODUCT_UNINST_KEY}" "UninstallString"
-ShowInstDetails show
-ShowUnInstDetails show
+ShowInstDetails hide
+ShowUnInstDetails hide
 
 
 Section "MainSection" SEC01
@@ -175,15 +183,19 @@ Section -Post
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   WriteRegStr HKCU "Software\${MY_GUID}" "InstallLocation" "$INSTDIR"
-
+  ; MessageBox MB_OK $ShowCustomPage
   ${if} $ShowCustomPage == 1
     ; StrCpy $key_value "HKLM"
     ; WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
     WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
   ; ${Else}
   ;   WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
   ${EndIf}
-  WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+  ; 设置只允许当前用户访问的权限
+  ; AccessControl::GrantOnFile "$INSTDIR" "(BU)" "FullAccess" "" 0
+  ; AccessControl::GrantOnFile "$INSTDIR" "(BU)" "ReadAndExecute" "ThisFolderSubfoldersAndFiles" 0
+
 SectionEnd
 
 Function FindProcess
@@ -256,7 +268,7 @@ FunctionEnd
 Var isSetpath
 Function setPath
   ReadRegStr $0 HKCU "Software\${MY_GUID}" "InstallLocation"
-  ReadRegStr $1 HKLM "Software\${MY_GUID}" "InstallLocation"
+  ; ReadRegStr $1 HKLM "Software\${MY_GUID}" "InstallLocation"
   ; MessageBox MB_OK "HKCU $0 "
   ; MessageBox MB_OK "HKLM $1 "
   ${If} $0 != ""
@@ -365,6 +377,22 @@ done:
   Delete "$INSTDIR\ceshiqwertasd"
   RMDir /r "$INSTDIR\ceshiqwertasd"
 
+  ; 不是覆盖安装，检测有疑似app的应用
+  ${If} $isSetpath == ""
+    ; 检测目录的exe是否存在
+    ${If} ${FileExists} "$INSTDIR\${EXE_NAME}"
+      ; 存在则提示是否继续安装
+      MessageBox MB_YESNO|MB_ICONQUESTION "$(Parity_App)" IDYES app_yes  IDNO app_no
+        app_yes:
+          Goto app_goon
+        app_no:
+          SendMessage $HWNDPARENT 0x408 -1 0
+          abort
+        app_goon:
+
+      abort
+    ${EndIf}
+  ${EndIf}
 FunctionEnd
 
 
@@ -453,26 +481,26 @@ Section Uninstall
   RMDir /r $INSTDIR
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
 
-  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+  ; DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
   DeleteRegKey HKCU "${PRODUCT_DIR_REGKEY}"
 
   DeleteRegKey HKCU "${PRODUCT_UNINST_KEY}"
-  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
+  ; DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
 
   DeleteRegKey HKCU "SOFTWARE\${MY_GUID}"
-  DeleteRegKey HKLM "SOFTWARE\${MY_GUID}"
+  ; DeleteRegKey HKLM "SOFTWARE\${MY_GUID}"
 
-  DeleteRegKey HKLM "SOFTWARE\WOW6432Node\${MY_GUID}"
+  ; DeleteRegKey HKLM "SOFTWARE\WOW6432Node\${MY_GUID}"
   DeleteRegKey HKCU "SOFTWARE\WOW6432Node\${MY_GUID}"
 
   DeleteRegValue HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
   DeleteRegValue HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
 
-  DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
-  DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
+  ; DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
+  ; DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
 
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+  ; DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
   ; 递归删除 Property 文件夹及其内容  
   ; RMDir /r "$1"  
   ; StrCpy $1 "$LOCALAPPDATA\Property"  
@@ -485,10 +513,12 @@ Function un.onInit
   
   ;nsProcess::_FindProcess "NoTePad.exe"
   ; !insertmacro MUI_UNGETLANGUAGE
+  ; MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(^UninstAsk)" IDYES +2
+  ; Abort
   nsProcess::_FindProcess "${PRODUCT_NAME}.exe"
   Pop $R0
   ${If} $R0 == 0
-    MessageBox MB_YESNO "$(RunPrompt)" IDYES label_yes  IDNO label_no
+    MessageBox MB_YESNO "$(^RunPrompt)" IDYES label_yes  IDNO label_no
   ${ElseIf} $R0 == 603
     Goto run
 	${EndIf}
@@ -499,11 +529,30 @@ Function un.onInit
   label_no:
     Quit
   run:
+  ; 1033  1034  2052
+  ; MessageBox MB_OK "$LANGUAGE"
   ; MessageBox MB_OK $LANGUAGE
   ; !insertmacro MUI_UNGETLANGUAGE
-  ; MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(^UninstAsk)" IDYES +2
+  ; MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(UNINSTALL_TEXT)" IDYES un_yes  IDNO un_no
+  ; ${If} $LANGUAGE == 1034
+  ;   ; 西班牙语
+  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "?? está seguro de que quiere eliminar por completo el Frigga Data Center y todos sus componentes?" IDYES un_yes  IDNO un_no
+  ; ${ElseIf} $LANGUAGE == 2052
+  ;   ; 中文
+  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "您确实要完全移除Frigga Data Center 及其所有的组件？" IDYES un_yes  IDNO un_no
+  ; ${Else}
+  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Are you sure you want to completely remove Frigga Data Center and all its components?" IDYES un_yes  IDNO un_no
+  ; ${EndIf}
+
+  ; un_yes:
+  ;   Goto un_run
+  ; un_no:
+  ;   abort
+  ;   Quit
+  ; un_run:
+  
   ; Abort
-  !insertmacro MUI_UNGETLANGUAGE
+  ; !insertmacro MUI_UNGETLANGUAGE
   ; StrCmp $LANGUAGE 2052 ZH_INI EN_INI
   ; EN_INI:
   ; MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^ Name) and all its components?" IDYES +2
