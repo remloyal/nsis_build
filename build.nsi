@@ -7,6 +7,7 @@
 !include "UAC.nsh"
 !include "nsDialogs.nsh"
 !include "FileFunc.nsh"
+!include "GSID.nsh"
 
 ; 获取命令行参数并定义常量
 !ifdef My_version
@@ -35,6 +36,14 @@ Var Checkbox2
 Var ShowCustomPage
 ; 是否为更新 1 为覆盖更新， 0为安装
 Var IsRenew
+; 用户账户的sid
+Var SID
+; 开始菜单路径
+Var SMPROGRAMS_PATH  
+; 桌面路径
+Var DESKTOP_PATH
+; 临时文件路径
+Var Temp_PATH
 
 SetCompressor lzma
 RequestExecutionLevel user
@@ -43,12 +52,10 @@ RequestExecutionLevel user
 !define MUI_ABORTWARNING
 !define MUI_ICON ".\modern-install.ico"
 !define MUI_UNICON ".\modern-uninstall.ico"
-;!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
-;!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
 ; 语言选择窗口常量设置
-!define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
-!define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
+; !define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
+; !define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
 ; 欢迎页面
@@ -153,49 +160,45 @@ ShowUnInstDetails hide
 
 
 Section "MainSection" SEC01
+  ; MessageBox MB_OK "SMPROGRAMS: $SMPROGRAMS_PATH \n DESKTOP: $DESKTOP_PATH"
+  Delete "$SMPROGRAMS_PATH\Frigga Data Center.lnk"
   SetOutPath "$INSTDIR"
   SetOverwrite try
   File ".\FilesToInstall\Frigga Data Center.exe"
-  CreateDirectory "$SMPROGRAMS\Frigga Data Center"
-  CreateShortCut "$SMPROGRAMS\Frigga Data Center\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
-  CreateShortCut "$DESKTOP\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
+  CreateDirectory "$SMPROGRAMS_PATH\Frigga Data Center"
+  CreateShortCut "$SMPROGRAMS_PATH\Frigga Data Center\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
+  CreateShortCut "$DESKTOP_PATH\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
   File /r ".\FilesToInstall\*.*"
-  ; Delete "$SMPROGRAMS\Frigga Data Center.lnk"
 SectionEnd
 
 Section -AdditionalIcons
   WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
-  CreateShortCut "$SMPROGRAMS\Frigga Data Center\Frigga.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
-  CreateShortCut "$SMPROGRAMS\Frigga Data Center\Uninstall.lnk" "$INSTDIR\uninst.exe"
+  CreateShortCut "$SMPROGRAMS_PATH\Frigga Data Center\Frigga.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
+  CreateShortCut "$SMPROGRAMS_PATH\Frigga Data Center\Uninstall.lnk" "$INSTDIR\uninst.exe"
 SectionEnd
 
 Section -Post
+  SetShellVarContext current
   ; 是否输出卸载程序   用于签名
   WriteUninstaller "$INSTDIR\uninst.exe"
 
-  WriteRegStr HKCU "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${EXE_NAME}"
-  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${EXE_NAME}"
-  ; WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayName" "$(^Name)"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayName" "Frigga Data Center"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\${EXE_NAME}"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
-  WriteRegStr HKCU "Software\${MY_GUID}" "InstallLocation" "$INSTDIR"
+  WriteRegStr HKU "$SID\${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${EXE_NAME}"
+  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "DisplayName" "Frigga Data Center"
+  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\${EXE_NAME}"
+  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
+  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  WriteRegStr HKU "$SID\Software\${MY_GUID}" "InstallLocation" "$INSTDIR"
+
   ; MessageBox MB_OK $ShowCustomPage
   ${if} $ShowCustomPage == 1
-    ; StrCpy $key_value "HKLM"
-    ; WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
-    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
-  ; ${Else}
-  ;   WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
-    WriteRegStr HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+    WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
+    WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
   ${EndIf}
   ; 设置只允许当前用户访问的权限
   ; AccessControl::GrantOnFile "$INSTDIR" "(BU)" "FullAccess" "" 0
   ; AccessControl::GrantOnFile "$INSTDIR" "(BU)" "ReadAndExecute" "ThisFolderSubfoldersAndFiles" 0
-
 SectionEnd
 
 Function FindProcess
@@ -220,13 +223,17 @@ FunctionEnd
 
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function .onInit
+  ; StrCpy $7 ${GSID}
+  ;  MessageBox MB_OK $7
+  Call getSid
+  ; SetShellVarContext current
   StrCpy $IsRenew 0
   ; 检测系统版本
-  GetWinVer $0 Major
+  GetWinVer $5 Major
   GetWinVer $1 Build
-  ; MessageBox MB_OK "$0"
+  ; MessageBox MB_OK "$5"
   ; MessageBox MB_OK "$1"
-  ${If} $0 <= 10        ;除非 Win10 或以上
+  ${If} $5 <= 10        ;除非 Win10 或以上
     ${If} $1 < 14393  ;并且 Build >= 19042
       MessageBox MB_OK "$(Not_Supported)"
       Quit
@@ -234,8 +241,8 @@ Function .onInit
   ${EndIf}
 
   Call setPath
-  ReadINIStr $1 "$Temp\params.ini" "Settings" "Param1"
-  ReadINIStr $2 "$Temp\params.ini" "Settings" "Path"
+  ReadINIStr $1 "$Temp_PATH\params.ini" "Settings" "Param1"
+  ReadINIStr $2 "$Temp_PATH\params.ini" "Settings" "Path"
   ; MessageBox MB_OK "缓存路径： $2"
   ${If}  $1 == "admin"
     ; 在这里根据需要设置 $ShowCustomPage 的值
@@ -246,7 +253,7 @@ Function .onInit
       SetOutPath $INSTDIR
       ; StrCpy $isSetpath "$2"
     ${EndIf}
-    Delete "$Temp\params.ini"
+    Delete "$Temp_PATH\params.ini"
     ; !define INSTALL_MODE_PER_ALL_USERS "admin"
   ${Else}
     StrCpy $ShowCustomPage 0
@@ -267,9 +274,9 @@ FunctionEnd
 
 Var isSetpath
 Function setPath
-  ReadRegStr $0 HKCU "Software\${MY_GUID}" "InstallLocation"
+  ReadRegStr $0 HKU "$SID\Software\${MY_GUID}" "InstallLocation"
   ; ReadRegStr $1 HKLM "Software\${MY_GUID}" "InstallLocation"
-  ; MessageBox MB_OK "HKCU $0 "
+  ; MessageBox MB_OK "HKU $SID   HKCU $0 "
   ; MessageBox MB_OK "HKLM $1 "
   ${If} $0 != ""
     ; 如果$0不为空，则执行这里的逻辑
@@ -317,35 +324,36 @@ Function mulu
 		FindWindow $0 "#32770" "" $HWNDPARENT
 		GetDlgItem $0 $0 1019
 		EnableWindow $0 0
+    
+    ; 检测目录的exe是否存在
+    ${If} ${FileExists} "$INSTDIR\${EXE_NAME}"
+      ; StrCpy $InstDir "C:\Cisco Systems\VPN Client\Profiles"
+      ; exe文件存在 禁止选择
+      ;禁用浏览按钮
+      FindWindow $0 "#32770" "" $HWNDPARENT
+      GetDlgItem $0 $0 1001
+      EnableWindow $0 0
+      ;禁止编辑目录
+      FindWindow $0 "#32770" "" $HWNDPARENT
+      GetDlgItem $0 $0 1019
+      EnableWindow $0 0
+    ${Else}
+      ;允许浏览按钮
+      FindWindow $0 "#32770" "" $HWNDPARENT
+      GetDlgItem $0 $0 1001
+      EnableWindow $0 1
+      ;允许编辑目录
+      FindWindow $0 "#32770" "" $HWNDPARENT
+      GetDlgItem $0 $0 1019
+      EnableWindow $0 1
+
+    ${EndIf}
 	${Else}
 	  ; 如果$0为空，则执行这里的逻辑
     ;MessageBox MB_OK "注册表值为空"
     
 	${EndIf}
-
-  ; 检测目录的exe是否存在
-  ${If} ${FileExists} "$INSTDIR\${EXE_NAME}"
-    ; StrCpy $InstDir "C:\Cisco Systems\VPN Client\Profiles"
-    ; exe文件存在 禁止选择
-    ;禁用浏览按钮
-		FindWindow $0 "#32770" "" $HWNDPARENT
-		GetDlgItem $0 $0 1001
-		EnableWindow $0 0
-		;禁止编辑目录
-		FindWindow $0 "#32770" "" $HWNDPARENT
-		GetDlgItem $0 $0 1019
-		EnableWindow $0 0
-  ${Else}
-    ;允许浏览按钮
-		FindWindow $0 "#32770" "" $HWNDPARENT
-		GetDlgItem $0 $0 1001
-		EnableWindow $0 1
-		;允许编辑目录
-		FindWindow $0 "#32770" "" $HWNDPARENT
-		GetDlgItem $0 $0 1019
-		EnableWindow $0 1
-
-  ${EndIf}
+  
 FunctionEnd
 
 Function Juicio
@@ -360,8 +368,8 @@ fileOpenError:
       ${IfNot} ${UAC_IsAdmin}
         ShowWindow $HWNDPARENT ${SW_HIDE}
         StrCpy $0 "admin"
-        WriteINIStr "$Temp\params.ini" "Settings" "Param1" $0
-        WriteINIStr "$Temp\params.ini" "Settings" "Path" $INSTDIR
+        WriteINIStr "$Temp_PATH\params.ini" "Settings" "Param1" $0
+        WriteINIStr "$Temp_PATH\params.ini" "Settings" "Path" $INSTDIR
         !insertmacro UAC_RunElevated
         Quit
       ${endif}
@@ -464,51 +472,85 @@ Function OnRadioButtonClick2
     StrCpy $Checkbox2 "on"
 FunctionEnd
 
+Function getSid
+  ${GSID}
+  Pop $7
+	StrCpy $SID $7
+  ; 设置当前用户下的默认 路径
+  ReadRegStr $R1 HKU "$SID\Volatile Environment" LOCALAPPDATA
+  StrCpy $INSTDIR "$R1\Frigga"
+  SetOutPath $INSTDIR
+
+  ; 设置当前用户的 SMPROGRAMS 开始菜单 路径
+  ReadRegStr $R2 HKU "$SID\Volatile Environment" APPDATA
+  StrCpy $SMPROGRAMS_PATH "$R2\Microsoft\Windows\Start Menu\Programs"
+
+  ; 设置当前用户的 桌面 路径
+  ReadRegStr $R3 HKU "$SID\Volatile Environment" USERPROFILE
+  StrCpy $DESKTOP_PATH "$R3\Desktop"
+  ; 设置临时路径
+  StrCpy $Temp_PATH "$R1\Temp"
+
+  ; MessageBox MB_OK "当前用户：$SID $\n  安装路径： $INSTDIR $\n 开始菜单 路径：$SMPROGRAMS_PATH  $\n 桌面 路径：$DESKTOP_PATH" 
+FunctionEnd
+
+Function un.getSid
+  ${GSID}
+  Pop $7
+	StrCpy $SID $7
+
+  ; 获取当前 用户的卸载路径
+  ; ReadRegStr $R1 HKU "$SID\Software\${MY_GUID}" "InstallLocation"
+  ; StrCpy $INSTDIR "$R1"
+
+  ; 设置当前用户的 SMPROGRAMS 开始菜单 路径
+  ReadRegStr $R2 HKU "$SID\Volatile Environment" APPDATA
+  StrCpy $SMPROGRAMS_PATH "$R2\Microsoft\Windows\Start Menu\Programs"
+
+  ; 设置当前用户的 桌面 路径
+  ReadRegStr $R3 HKU "$SID\Volatile Environment" USERPROFILE
+  StrCpy $DESKTOP_PATH "$R3\Desktop"
+  
+  ; MessageBox MB_OK "当前用户：$SID $\n安装路径： $INSTDIR $\n 开始菜单 路径：$SMPROGRAMS_PATH  $\n 桌面 路径：$DESKTOP_PATH" 
+FunctionEnd
 
 Section Uninstall
-  Delete "$INSTDIR\${PRODUCT_NAME}.url"
-  Delete "$INSTDIR\uninst.exe"
-  Delete "$INSTDIR\*.*"
-  Delete "$INSTDIR\Frigga Data Center.exe"
+  ; SetShellVarContext current
+  Delete "$SMPROGRAMS_PATH\Frigga Data Center\Uninstall.lnk"
+  Delete "$SMPROGRAMS_PATH\Frigga Data Center\Frigga.lnk"
+  Delete "$DESKTOP_PATH\Frigga Data Center.lnk"
+  Delete "$SMPROGRAMS_PATH\Frigga Data Center\Frigga Data Center.lnk"
 
-  Delete "$SMPROGRAMS\Frigga Data Center\Uninstall.lnk"
-  Delete "$SMPROGRAMS\Frigga Data Center\Frigga.lnk"
-  Delete "$DESKTOP\Frigga Data Center.lnk"
-  Delete "$SMPROGRAMS\Frigga Data Center\Frigga Data Center.lnk"
+  RMDir "$SMPROGRAMS_PATH\Frigga Data Center"
 
-  RMDir "$SMPROGRAMS\Frigga Data Center"
+  
+  DeleteRegKey HKU "$SID\${PRODUCT_UNINST_KEY}"
 
-  RMDir /r $INSTDIR
-  DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
-
-  ; DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  DeleteRegKey HKCU "${PRODUCT_DIR_REGKEY}"
-
-  DeleteRegKey HKCU "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey HKU "$SID\${PRODUCT_DIR_REGKEY}"
+  DeleteRegKey HKU "$SID\${PRODUCT_UNINST_KEY}"
+  DeleteRegKey HKU "$SID\SOFTWARE\${MY_GUID}"
   ; DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
 
-  DeleteRegKey HKCU "SOFTWARE\${MY_GUID}"
-  ; DeleteRegKey HKLM "SOFTWARE\${MY_GUID}"
+  DeleteRegKey HKU "$SID\SOFTWARE\WOW6432Node\${MY_GUID}"
+  DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
+  DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
+  DeleteRegKey HKU "$SID\Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
-  ; DeleteRegKey HKLM "SOFTWARE\WOW6432Node\${MY_GUID}"
-  DeleteRegKey HKCU "SOFTWARE\WOW6432Node\${MY_GUID}"
-
-  DeleteRegValue HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
-  DeleteRegValue HKCU "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
-
-  ; DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
-  ; DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
-
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
-  ; DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
+  Delete "$INSTDIR\*.*"
+  Delete "$INSTDIR\Frigga Data Center.exe"
+  RMDir /r $INSTDIR
+  Delete "$INSTDIR\uninst.exe"
   ; 递归删除 Property 文件夹及其内容  
   ; RMDir /r "$1"  
   ; StrCpy $1 "$LOCALAPPDATA\Property"  
   SetAutoClose true
 SectionEnd
 
+
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function un.onInit
+  Call un.getSid
   ; MessageBox MB_OK|MB_ICONEXCLAMATION "$ShowCustomPage"
   
   ;nsProcess::_FindProcess "NoTePad.exe"
@@ -518,7 +560,7 @@ Function un.onInit
   nsProcess::_FindProcess "${PRODUCT_NAME}.exe"
   Pop $R0
   ${If} $R0 == 0
-    MessageBox MB_YESNO "$(^RunPrompt)" IDYES label_yes  IDNO label_no
+    MessageBox MB_YESNO "$(RunPrompt)" IDYES label_yes  IDNO label_no
   ${ElseIf} $R0 == 603
     Goto run
 	${EndIf}
@@ -564,6 +606,10 @@ Function un.onInit
   ; Abort
   ; END:
   ; MessageBox MB_ICONINFORMATION|MB_OK "$(UNINSTALL_CONFIRM)"
+  ; ${GSID}
+	; StrCpy $SID $0
+	; MessageBox MB_OK "$SID $0"
+  ; MessageBox MB_OK "$sid"
 FunctionEnd
 
 Function un.onUninstSuccess
