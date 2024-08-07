@@ -72,6 +72,7 @@ RequestExecutionLevel user
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW Juicio
 !insertmacro MUI_PAGE_INSTFILES
 ; 安装完成页面
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW runon
 !define MUI_FINISHPAGE_RUN "$INSTDIR\Frigga Data Center.exe"
 !insertmacro MUI_PAGE_FINISH
 
@@ -514,6 +515,10 @@ Function un.getSid
   ; MessageBox MB_OK "当前用户：$SID $\n安装路径： $INSTDIR $\n 开始菜单 路径：$SMPROGRAMS_PATH  $\n 桌面 路径：$DESKTOP_PATH" 
 FunctionEnd
 
+Function runon
+  ${RefreshShellIcons}
+FunctionEnd
+
 Section Uninstall
   ; SetShellVarContext current
   Delete "$SMPROGRAMS_PATH\Frigga Data Center\Uninstall.lnk"
@@ -529,7 +534,7 @@ Section Uninstall
   DeleteRegKey HKU "$SID\${PRODUCT_DIR_REGKEY}"
   DeleteRegKey HKU "$SID\${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKU "$SID\SOFTWARE\${MY_GUID}"
-  ; DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
 
   DeleteRegKey HKU "$SID\SOFTWARE\WOW6432Node\${MY_GUID}"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
@@ -571,6 +576,8 @@ Function un.onInit
   label_no:
     Quit
   run:
+
+  Sleep 1500
   ; 1033  1034  2052
   ; MessageBox MB_OK "$LANGUAGE"
   ; MessageBox MB_OK $LANGUAGE
