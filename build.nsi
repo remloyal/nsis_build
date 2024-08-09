@@ -8,6 +8,9 @@
 !include "nsDialogs.nsh"
 !include "FileFunc.nsh"
 !include "GSID.nsh"
+; !include "WinVer.nsh"
+; !include "UseFulLib.nsh"
+; !include "CreateCTL.nsh"
 
 ; 获取命令行参数并定义常量
 !ifdef My_version
@@ -65,8 +68,11 @@ RequestExecutionLevel user
 ; Page custom nsDialogsPage onNext
 ; 安装目录选择页面
 ;!insertmacro MUI_PAGE_DIRECTORY
+; !define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPageShow
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW mulu
+; !define MUI_PAGE_CUSTOMFUNCTION_SHOW DirectoryPageShow
 !insertmacro MUI_PAGE_DIRECTORY
+
 
 ; 安装过程页面
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW Juicio
@@ -180,6 +186,8 @@ SectionEnd
 
 Section -Post
   SetShellVarContext current
+  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
+
   ; 是否输出卸载程序   用于签名
   WriteUninstaller "$INSTDIR\uninst.exe"
 
@@ -196,6 +204,7 @@ Section -Post
   ${if} $ShowCustomPage == 1
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
+    WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\update.exe" "~ RUNASADMIN"
   ${EndIf}
   ; 设置只允许当前用户访问的权限
   ; AccessControl::GrantOnFile "$INSTDIR" "(BU)" "FullAccess" "" 0
@@ -221,7 +230,8 @@ Function FindProcess
   run:
 FunctionEnd
 
-
+Var WinVersion
+Var IsHomeEdition
 #-- 根据 NSIS 脚本编辑规则，所有 Function 区段必须放置在 Section 区段之后编写，以避免安装程序出现未可预知的问题。--#
 Function .onInit
   ; StrCpy $7 ${GSID}
@@ -240,6 +250,10 @@ Function .onInit
       Quit
     ${EndIf}
   ${EndIf}
+
+  ; 获取系统版本信息
+  ; Call GetWindowsVersion
+  Pop $WinVersion
 
   Call setPath
   ReadINIStr $1 "$Temp_PATH\params.ini" "Settings" "Param1"
@@ -312,6 +326,29 @@ Function setPath
   ; ${EndIf}
 FunctionEnd
 
+; 自定义函数，在页面显示前添加复选框
+Function DirectoryPageShow
+
+  ; FindWindow $1 "#32770" "" $HWNDPARENT
+  ; ; 创建复选框，放置在安装目录选择框的下方
+  ; ${NSD_CreateCheckbox} 60% 85% 80% 12u "启用选项"
+  ; Pop $CheckBox
+  ; FindWindow $1 "#32770" "" $HWNDPARENT
+  ; ${CreateCTLIDLink}  $1 1040 'https://www.cnblogs.com/NSIS/'
+  ; !insertmacro CreateAboutCheckbox '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
+  ; ${CreateAboutCheckbox} '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
+FunctionEnd
+#检测控件状态
+Function ADDCheckbox
+SendMessage $R0 ${BM_GETCHECK} 0 0 $2
+${If} $2 = ${BST_CHECKED}
+   MessageBox MB_OK '选中'
+    ${Else}
+   MessageBox MB_OK "未选中"
+${EndIf}
+FunctionEnd
+
+
 Function mulu
   ; ReadRegStr $9 HKLM "SOFTWARE\GitForWindows" "InstallPath"
   ; MessageBox MB_OK "$INSTDIR"
@@ -354,9 +391,19 @@ Function mulu
     ;MessageBox MB_OK "注册表值为空"
     
 	${EndIf}
-  
+  ; Call DirectoryPageShow
 FunctionEnd
-
+Function EnableDisableDirectoryControls
+    ; ${If} ${NSD_GetState} $CheckBoxHandle $R0
+    ;     ${If} $R0 = ${BST_CHECKED}
+    ;         ${NSD_Enable} $DirTextHandle
+    ;         ${NSD_Enable} $DirBrowseHandle
+    ;     ${Else}
+    ;         ${NSD_Disable} $DirTextHandle
+    ;         ${NSD_Disable} $DirBrowseHandle
+    ;     ${EndIf}
+    ; ${EndIf}
+FunctionEnd
 Function Juicio
   ; Call GrepFunc
 
@@ -519,6 +566,28 @@ Function runon
   ${RefreshShellIcons}
 FunctionEnd
 
+; 定义获取Windows版本信息的函数
+Function GetWindowsVersion
+    System::Call 'kernel32::GetVersionEx(t.r1)'
+    Pop $0 ; get the Windows version information
+
+    ; 获取主要版本号和次要版本号
+    System::Call '*$1(i${NSIS_PTR_SIZE})i.r2'
+    IntOp $2 $2 >> 8 ; 主要版本号
+    IntOp $2 $2 & 0xFF ; 次要版本号
+    MessageBox MB_OK '$2'
+    ; 检查是否是家庭版
+    ${If} $2 < 6
+        ; Windows XP 及更早的版本没有 HOME_PREMIUM 和 HOME_BASIC 标志
+        StrCpy $IsHomeEdition 0
+    ${Else}
+        System::Call 'kernel32::GetProductInfo(i 1, i $2, i 0, i 0, *i.r3)'
+        MessageBox MB_OK '$3  $R3'
+        ; IntCmp $3 0x1A $IsHomeEdition 1 0 ; PRODUCT_HOME_PREMIUM
+        ; IntCmp $3 0x2 $IsHomeEdition 1 0 ; PRODUCT_HOME_BASIC
+    ${EndIf}
+FunctionEnd
+
 Section Uninstall
   ; SetShellVarContext current
   Delete "$SMPROGRAMS_PATH\Frigga Data Center\Uninstall.lnk"
@@ -539,6 +608,7 @@ Section Uninstall
   DeleteRegKey HKU "$SID\SOFTWARE\WOW6432Node\${MY_GUID}"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
+  DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\update.exe"
   DeleteRegKey HKU "$SID\Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
   Delete "$INSTDIR\${PRODUCT_NAME}.url"

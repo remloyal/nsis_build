@@ -1,9 +1,9 @@
 echo Script stareTiem at %TIME% >> build_log.txt
 
-@REM set "version=1.1.0"
-@REM set "pkgVersion=1.1.0"
-set "version=1.3.4-4"
-set "pkgVersion=1.3.4"
+set "version=1.1.0"
+set "pkgVersion=1.1.0"
+@REM set "version=1.3.4-6"
+@REM set "pkgVersion=1.3.4"
 set "filePath=./OutFile/%version%"
 md "%filePath%"
 call file.bat %version% %pkgVersion%
@@ -18,6 +18,6 @@ timeout /T 2 /NOBREAK
 @REM call signature.bat %filePath%
 @REM timeout /T 2 /NOBREAK
 
-node index.js %version%
+@REM node index.js %version%
 @REM app-builder.exe  blockmap -i .\OutFile\Frigga_Data_Center_1.3.0-9_.exe -o ./OutFile/Frigga_Data_Center_1.3.0-9_.exe.blockmap
 echo Script endTiem at %TIME% >> build_log.txt
