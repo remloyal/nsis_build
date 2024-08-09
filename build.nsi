@@ -1,5 +1,5 @@
 ; ------ MUI 现代界面定义1.67 版本以上兼容) ------
-!include "MUI.nsh"
+!include "MUI2.nsh"
 !include "nsProcess.nsh"
 !include "Sections.nsh"
 !include "LogicLib.nsh"
@@ -10,7 +10,7 @@
 !include "GSID.nsh"
 ; !include "WinVer.nsh"
 ; !include "UseFulLib.nsh"
-; !include "CreateCTL.nsh"
+!include "CreateCTL.nsh"
 
 ; 获取命令行参数并定义常量
 !ifdef My_version
@@ -68,8 +68,9 @@ RequestExecutionLevel user
 ; Page custom nsDialogsPage onNext
 ; 安装目录选择页面
 ;!insertmacro MUI_PAGE_DIRECTORY
-; !define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPageShow
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW mulu
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE DestoryButton
 ; !define MUI_PAGE_CUSTOMFUNCTION_SHOW DirectoryPageShow
 !insertmacro MUI_PAGE_DIRECTORY
 
@@ -155,7 +156,7 @@ LangString Parity_App ${LANG_Spanish} "?Se sospecha que el catálogo tiene la mi
 
 ; 安装预释放文件
 !insertmacro MUI_RESERVEFILE_LANGDLL
-!insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
+; !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 ; ------ MUI 现代界面定义结束 ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
@@ -324,19 +325,23 @@ Function setPath
   ;   StrCpy $isSetpath "C:\Frigga"
 
   ; ${EndIf}
+  ShowWindow $CheckDestroy 1
 FunctionEnd
-
+Var CheckDestroy
 ; 自定义函数，在页面显示前添加复选框
 Function DirectoryPageShow
-
-  ; FindWindow $1 "#32770" "" $HWNDPARENT
-  ; ; 创建复选框，放置在安装目录选择框的下方
-  ; ${NSD_CreateCheckbox} 60% 85% 80% 12u "启用选项"
-  ; Pop $CheckBox
   ; FindWindow $1 "#32770" "" $HWNDPARENT
   ; ${CreateCTLIDLink}  $1 1040 'https://www.cnblogs.com/NSIS/'
   ; !insertmacro CreateAboutCheckbox '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
   ; ${CreateAboutCheckbox} '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
+  ;  FindWindow $1 "#32770" "" $HWNDPARENT
+  ; ${CreateCTLIDLink}  $1 1040 'https://www.cnblogs.com/NSIS/'
+  ${CreateAboutCheckbox} '启用' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
+  StrCpy $CheckDestroy $R0
+
+FunctionEnd
+Function  DestoryButton
+  ShowWindow $CheckDestroy 0
 FunctionEnd
 #检测控件状态
 Function ADDCheckbox
@@ -392,6 +397,7 @@ Function mulu
     
 	${EndIf}
   ; Call DirectoryPageShow
+  ; ${CreateAboutCheckbox} '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
 FunctionEnd
 Function EnableDisableDirectoryControls
     ; ${If} ${NSD_GetState} $CheckBoxHandle $R0
