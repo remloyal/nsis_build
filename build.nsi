@@ -32,6 +32,7 @@
 
 ; 定义 GUID 变量
 !define MY_GUID "friggaDataCenter"
+!define IDC_BUTTON_TRYME_ID 11035
 
 Var POWER 
 Var Checkbox1
@@ -47,6 +48,10 @@ Var SMPROGRAMS_PATH
 Var DESKTOP_PATH
 ; 临时文件路径
 Var Temp_PATH
+
+Var Checkbox
+Var CheckState ; 全局存储，以便在用户按下返回按钮并返回到该页面时记住选择
+!define Height 28
 
 SetCompressor lzma
 RequestExecutionLevel user
@@ -68,12 +73,12 @@ RequestExecutionLevel user
 ; Page custom nsDialogsPage onNext
 ; 安装目录选择页面
 ;!insertmacro MUI_PAGE_DIRECTORY
-!define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPageShow
+; !define MUI_PAGE_CUSTOMFUNCTION_PRE "DirectoryShow"
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW mulu
-!define MUI_PAGE_CUSTOMFUNCTION_LEAVE DestoryButton
+; !define MUI_PAGE_CUSTOMFUNCTION_LEAVE DirectoryLeave
 ; !define MUI_PAGE_CUSTOMFUNCTION_SHOW DirectoryPageShow
 !insertmacro MUI_PAGE_DIRECTORY
-
+!insertmacro MUI_PAGE_COMPONENTS
 
 ; 安装过程页面
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW Juicio
@@ -153,6 +158,14 @@ LangString Install_Item ${LANG_Spanish} "?? para qué usuario se instala la apli
 LangString Parity_App ${LANG_ENGLISH} "This directory is suspected to contain the same application. Do you want to continue installing?"
 LangString Parity_App ${LANG_SIMPCHINESE} "该目录疑似存在相同应用，是否继续安装？"
 LangString Parity_App ${LANG_Spanish} "?Se sospecha que el catálogo tiene la misma aplicación, ? continúa instalando?"
+
+LangString Enable ${LANG_ENGLISH} "Custom directory"
+LangString Enable ${LANG_SIMPCHINESE} "自定义目录"
+LangString Enable ${LANG_Spanish} "Catálogo personalizado"
+
+LangString Enable_Text ${LANG_ENGLISH} "Non system driver installation may cause errors, please be aware"
+LangString Enable_Text ${LANG_SIMPCHINESE} "非系统驱动器安装可能导致错误，请知晓"
+LangString Enable_Text ${LANG_Spanish} "La instalación de una unidad no sistemática puede causar errores, sepa"
 
 ; 安装预释放文件
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -240,6 +253,7 @@ Function .onInit
   Call getSid
   ; SetShellVarContext current
   StrCpy $IsRenew 0
+  StrCpy $CheckState 0
   ; 检测系统版本
   GetWinVer $5 Major
   GetWinVer $1 Build
@@ -279,7 +293,7 @@ Function .onInit
 
   ;!insertmacro FindProcess
   ; Call FindProcess
-  
+  ; Call DirectoryPageShow
 FunctionEnd
 
 ; 检测安装退出
@@ -325,94 +339,123 @@ Function setPath
   ;   StrCpy $isSetpath "C:\Frigga"
 
   ; ${EndIf}
-  ShowWindow $CheckDestroy 1
 FunctionEnd
-Var CheckDestroy
-; 自定义函数，在页面显示前添加复选框
-Function DirectoryPageShow
-  ; FindWindow $1 "#32770" "" $HWNDPARENT
-  ; ${CreateCTLIDLink}  $1 1040 'https://www.cnblogs.com/NSIS/'
-  ; !insertmacro CreateAboutCheckbox '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
-  ; ${CreateAboutCheckbox} '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
-  ;  FindWindow $1 "#32770" "" $HWNDPARENT
-  ; ${CreateCTLIDLink}  $1 1040 'https://www.cnblogs.com/NSIS/'
-  ${CreateAboutCheckbox} '启用' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
-  StrCpy $CheckDestroy $R0
 
-FunctionEnd
-Function  DestoryButton
-  ShowWindow $CheckDestroy 0
-FunctionEnd
 #检测控件状态
 Function ADDCheckbox
-SendMessage $R0 ${BM_GETCHECK} 0 0 $2
-${If} $2 = ${BST_CHECKED}
-   MessageBox MB_OK '选中'
-    ${Else}
-   MessageBox MB_OK "未选中"
-${EndIf}
+  ; SendMessage $Checkbox ${BM_GETCHECK} 0 0 $2
+  ${NSD_GetState} $Checkbox $CheckState
+  ; MessageBox MB_OK  $CheckState
+  ${If} $CheckState == 0
+    EnableWindow $mui.DirectoryPage.BrowseButton 0
+    EnableWindow $mui.DirectoryPage.Directory 0
+  ${Else}
+    MessageBox MB_OK "$(Enable_Text)"
+    EnableWindow $mui.DirectoryPage.BrowseButton 1
+    EnableWindow $mui.DirectoryPage.Directory 1
+  ${EndIf}
 FunctionEnd
 
+; Function un.ADDCheckbox
+; FunctionEnd
+
+Function DirectoryShow
+  System::Call *(i,i,i,i)p.r0
+  System::Call 'USER32::GetWindowRect(p$mui.DirectoryPage.SpaceRequired, pr0)'
+  System::Call 'USER32::MapWindowPoints(i0,p$mui.DirectoryPage,p$0,i2)'
+  System::Call '*$0(i.r2,i.r3,i.r4,i.r5)'
+  System::Free $0
+  IntOp $5 $5 + 100 ; 注意: 仅支持像素坐标
+
+  ; MessageBox MB_OK "$0 $1 $2 $3  $4 $5"
+  System::Call 'USER32::CreateWindowEx(i ${__NSD_CheckBox_EXSTYLE}, t "${__NSD_CheckBox_CLASS}", ts, i ${__NSD_CheckBox_STYLE}, i$5, i $3, i 200, i ${Height}, p $mui.DirectoryPage, i${IDC_BUTTON_TRYME_ID}, i0, i0)p.s' "$(Enable)"  
+  ; System::Call 'User32::CreateWindowEx(i0,t"BUTTON",t"${TEXT}",i0x54012C03,i340,i250,i100,i30,i$0,i${_CTLID},is,i0)i .s'
+
+  Pop $Checkbox
+  SendMessage $mui.DirectoryPage ${WM_GETFONT} 0 0 $0
+  SendMessage $Checkbox ${WM_SETFONT} $0 1 
+  System::Call 'USER32::SetWindowPos(i$Checkbox,i0,i,i,i,i,i0x33)' ; 确保它在Z序的顶部
+
+  GetFunctionAddress $0 ADDCheckbox
+  ButtonEvent::AddEventHandler ${IDC_BUTTON_TRYME_ID} $0
+
+  ;  Pop $R2
+  ${If} $CheckState == ""
+	  StrCpy $CheckState 0
+	${endif}
+	
+  ${NSD_SetState} $Checkbox $CheckState
+FunctionEnd
+
+Function DirectoryLeave
+  ${NSD_GetState} $Checkbox $CheckState
+  MessageBox mb_ok $CheckState 
+  ${If} $CheckState <> 0
+    MessageBox mb_ok "复选框已选中。"
+  ${EndIf}
+FunctionEnd
 
 Function mulu
   ; ReadRegStr $9 HKLM "SOFTWARE\GitForWindows" "InstallPath"
   ; MessageBox MB_OK "$INSTDIR"
-
-  ${If} $isSetpath != ""
-    ;禁用浏览按钮
-		FindWindow $0 "#32770" "" $HWNDPARENT
-		GetDlgItem $0 $0 1001
-		EnableWindow $0 0
-		;禁止编辑目录
-		FindWindow $0 "#32770" "" $HWNDPARENT
-		GetDlgItem $0 $0 1019
-		EnableWindow $0 0
+  ; Call DirectoryPageShow
+  ; ShowWindow $CheckDestroy 1
+  ; System::Call 'User32::ShowWindow(i R0, i 0x5) i .r'
+  ; ShowWindow $CheckDestroy 1
+  ; ${If} $isSetpath != ""
+  ;   ;禁用浏览按钮
+	; 	FindWindow $0 "#32770" "" $HWNDPARENT
+	; 	GetDlgItem $0 $0 1001
+	; 	EnableWindow $0 0
+	; 	;禁止编辑目录
+	; 	FindWindow $0 "#32770" "" $HWNDPARENT
+	; 	GetDlgItem $0 $0 1019
+	; 	EnableWindow $0 0
     
-    ; 检测目录的exe是否存在
-    ${If} ${FileExists} "$INSTDIR\${EXE_NAME}"
-      ; StrCpy $InstDir "C:\Cisco Systems\VPN Client\Profiles"
-      ; exe文件存在 禁止选择
-      ;禁用浏览按钮
-      FindWindow $0 "#32770" "" $HWNDPARENT
-      GetDlgItem $0 $0 1001
-      EnableWindow $0 0
-      ;禁止编辑目录
-      FindWindow $0 "#32770" "" $HWNDPARENT
-      GetDlgItem $0 $0 1019
-      EnableWindow $0 0
-    ${Else}
-      ;允许浏览按钮
-      FindWindow $0 "#32770" "" $HWNDPARENT
-      GetDlgItem $0 $0 1001
-      EnableWindow $0 1
-      ;允许编辑目录
-      FindWindow $0 "#32770" "" $HWNDPARENT
-      GetDlgItem $0 $0 1019
-      EnableWindow $0 1
+  ;   ; 检测目录的exe是否存在
+  ;   ${If} ${FileExists} "$INSTDIR\${EXE_NAME}"
+  ;     ; StrCpy $InstDir "C:\Cisco Systems\VPN Client\Profiles"
+  ;     ; exe文件存在 禁止选择
+  ;     ;禁用浏览按钮
+  ;     FindWindow $0 "#32770" "" $HWNDPARENT
+  ;     GetDlgItem $0 $0 1001
+  ;     EnableWindow $0 0
+  ;     ;禁止编辑目录
+  ;     FindWindow $0 "#32770" "" $HWNDPARENT
+  ;     GetDlgItem $0 $0 1019
+  ;     EnableWindow $0 0
+  ;   ${Else}
+  ;     ;允许浏览按钮
+  ;     FindWindow $0 "#32770" "" $HWNDPARENT
+  ;     GetDlgItem $0 $0 1001
+  ;     EnableWindow $0 1
+  ;     ;允许编辑目录
+  ;     FindWindow $0 "#32770" "" $HWNDPARENT
+  ;     GetDlgItem $0 $0 1019
+  ;     EnableWindow $0 1
 
-    ${EndIf}
-	${Else}
+  ;   ${EndIf}
+	; ${Else}
 	  ; 如果$0为空，则执行这里的逻辑
     ;MessageBox MB_OK "注册表值为空"
     
-	${EndIf}
-  ; Call DirectoryPageShow
-  ; ${CreateAboutCheckbox} '勾选框点击测试' ${IDC_BUTTON_TRYME} 100 ADDCheckbox
-FunctionEnd
-Function EnableDisableDirectoryControls
-    ; ${If} ${NSD_GetState} $CheckBoxHandle $R0
-    ;     ${If} $R0 = ${BST_CHECKED}
-    ;         ${NSD_Enable} $DirTextHandle
-    ;         ${NSD_Enable} $DirBrowseHandle
-    ;     ${Else}
-    ;         ${NSD_Disable} $DirTextHandle
-    ;         ${NSD_Disable} $DirBrowseHandle
-    ;     ${EndIf}
-    ; ${EndIf}
+	; ${EndIf}
+  ; Call ADDCheckbox
+  ${If} $CheckState == 0
+    EnableWindow $mui.DirectoryPage.BrowseButton 0
+    EnableWindow $mui.DirectoryPage.Directory 0
+  ${Else}
+    EnableWindow $mui.DirectoryPage.BrowseButton 1
+    EnableWindow $mui.DirectoryPage.Directory 1
+  ${EndIf}
+  Call DirectoryShow
 FunctionEnd
 Function Juicio
   ; Call GrepFunc
-
+  ; ShowWindow $CheckDestroy 0
+  ; ShowWindow $R0 0
+  System::Call 'User32::ShowWindow(i R0, i 0x0) i .r'
+  ; System::Call 'user32::DestroyWindow(i$CheckDestroy)'
   ClearErrors
   CreateDirectory "$INSTDIR\ceshiqwertasd"
   IfErrors fileOpenError fileOpenSuccess

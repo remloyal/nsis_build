@@ -15,6 +15,31 @@
 !macroend
 !define CreateCTLIDLink "!insertmacro _CreateCTLIDLink"
 
+!macro _CreateCTLIDCheckbox _HWND _CTLID TEXT ADDCheckbox
+!verbose push
+	!verbose 3
+   System::Call *(i,i,i,i)p.r0
+   System::Call 'USER32::GetWindowRect(p$mui.DirectoryPage.SpaceRequired, pr0)'
+   System::Call 'USER32::MapWindowPoints(i0,p$mui.DirectoryPage,p$0,i2)'
+   System::Call '*$0(i.r2,i.r3,i.r4,i.r5)'
+   System::Free $0
+
+   ; System::Call 'User32::GetForegroundWindow() i .r0'
+   System::Call 'User32::CreateWindowEx(i0,t"BUTTON",t"${TEXT}",i0x54012C03,i340,i250,i100,i30,i$0,i${_CTLID},is,i0)i .s'
+   Exch $R0 
+   Push $R1
+   CreateFont $R1 $(^Font) $(^FontSize) 400
+   SendMessage $R0 ${WM_SETFONT} $R1 0
+   GetFunctionAddress $R2 ${ADDCheckbox}
+   ButtonEvent::AddEventHandler ${IDC_BUTTON_TRYME} $R2
+   Pop $R2
+   Pop $R1
+   Pop $R0 
+!verbose pop
+!macroend
+!define CreateCheck "!insertmacro _CreateCTLIDCheckbox"
+
+
 
 !macro CreateAboutCheckbox TEXT CTLID WIDTH ADDCheckbox
 !verbose push
