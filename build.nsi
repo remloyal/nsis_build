@@ -10,7 +10,7 @@
 !include "GSID.nsh"
 ; !include "WinVer.nsh"
 ; !include "UseFulLib.nsh"
-!include "CreateCTL.nsh"
+; !include "CreateCTL.nsh"
 
 ; 获取命令行参数并定义常量
 !ifdef My_version
@@ -219,6 +219,7 @@ Section -Post
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\update.exe" "~ RUNASADMIN"
+    WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Property\cache\update\update.exe" "~ RUNASADMIN"
   ${EndIf}
   ; 设置只允许当前用户访问的权限
   ; AccessControl::GrantOnFile "$INSTDIR" "(BU)" "FullAccess" "" 0
@@ -658,6 +659,7 @@ Section Uninstall
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\update.exe"
+  DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Property\cache\update\update.exe"
   DeleteRegKey HKU "$SID\Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
