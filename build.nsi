@@ -62,7 +62,7 @@ RequestExecutionLevel user
 !define MUI_UNICON ".\modern-uninstall.ico"
 
 ; 语言选择窗口常量设置
-; !define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
+!define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
 ; !define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
@@ -88,8 +88,13 @@ RequestExecutionLevel user
 !define MUI_FINISHPAGE_RUN "$INSTDIR\Frigga Data Center.exe"
 !insertmacro MUI_PAGE_FINISH
 
+
 ; 安装卸载过程页面
 ; !insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
 
 ; 安装界面包含的语言设置
 !insertmacro MUI_LANGUAGE "English"
@@ -182,7 +187,6 @@ ShowUnInstDetails hide
 
 Section "MainSection" SEC01
   ; MessageBox MB_OK "SMPROGRAMS: $SMPROGRAMS_PATH \n DESKTOP: $DESKTOP_PATH"
-  Delete "$SMPROGRAMS_PATH\Frigga Data Center.lnk"
   SetOutPath "$INSTDIR"
   SetOverwrite try
   File ".\FilesToInstall\Frigga Data Center.exe"
@@ -190,6 +194,7 @@ Section "MainSection" SEC01
   CreateShortCut "$SMPROGRAMS_PATH\Frigga Data Center\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
   CreateShortCut "$DESKTOP_PATH\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
   File /r ".\FilesToInstall\*.*"
+  Delete "$SMPROGRAMS_PATH\Frigga Data Center.lnk"
 SectionEnd
 
 Section -AdditionalIcons
@@ -598,9 +603,9 @@ Function un.getSid
 	StrCpy $SID $7
 
   ; 获取当前 用户的卸载路径
-  ; ReadRegStr $R1 HKU "$SID\Software\${MY_GUID}" "InstallLocation"
-  ; StrCpy $INSTDIR "$R1"
-
+  ReadRegStr $R1 HKU "$SID\Software\${MY_GUID}" "InstallLocation"
+  StrCpy $INSTDIR "$R1"
+  MessageBox MB_OK "$R1"
   ; 设置当前用户的 SMPROGRAMS 开始菜单 路径
   ReadRegStr $R2 HKU "$SID\Volatile Environment" APPDATA
   StrCpy $SMPROGRAMS_PATH "$R2\Microsoft\Windows\Start Menu\Programs"
@@ -653,7 +658,6 @@ Section Uninstall
   DeleteRegKey HKU "$SID\${PRODUCT_DIR_REGKEY}"
   DeleteRegKey HKU "$SID\${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKU "$SID\SOFTWARE\${MY_GUID}"
-  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
 
   DeleteRegKey HKU "$SID\SOFTWARE\WOW6432Node\${MY_GUID}"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
@@ -670,6 +674,7 @@ Section Uninstall
   ; 递归删除 Property 文件夹及其内容  
   ; RMDir /r "$1"  
   ; StrCpy $1 "$LOCALAPPDATA\Property"  
+  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
   SetAutoClose true
 SectionEnd
 
@@ -740,18 +745,18 @@ Function un.onInit
   ; MessageBox MB_OK "$sid"
 FunctionEnd
 
-Function un.onUninstSuccess
-  HideWindow
-  ; StrCmp $LANGUAGE 2052 ZH_INI EN_INI
-  ; EN_INI:
-  ;   ;想干啥干啥
-  ;   MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) has been successfully removed from your computer."
-  ;   Goto END
-  ; ZH_INI:
-  ;   MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) 已成功地从您的计算机移除。"
-  ; END:
-  MessageBox MB_ICONINFORMATION|MB_OK "$(UNINSTALL_CONFIRM)"
-FunctionEnd
+; Function un.onUninstSuccess
+;   HideWindow
+;   ; StrCmp $LANGUAGE 2052 ZH_INI EN_INI
+;   ; EN_INI:
+;   ;   ;想干啥干啥
+;   ;   MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) has been successfully removed from your computer."
+;   ;   Goto END
+;   ; ZH_INI:
+;   ;   MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) 已成功地从您的计算机移除。"
+;   ; END:
+;   MessageBox MB_ICONINFORMATION|MB_OK "$(UNINSTALL_CONFIRM)"
+; FunctionEnd
 
 VIProductVersion "${PRODUCT_VERSION}" ;版本号，格式为 X.X.X.X若使用则本条必须)
 VIAddVersionKey  "ProductName" "${PRODUCT_NAME}" ;产品名称
