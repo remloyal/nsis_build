@@ -8,6 +8,8 @@
 !include "nsDialogs.nsh"
 !include "FileFunc.nsh"
 !include "GSID.nsh"
+; !include "UsefulLib.nsh"
+!include "StrFunc.nsh"
 ; !include "WinVer.nsh"
 ; !include "UseFulLib.nsh"
 ; !include "CreateCTL.nsh"
@@ -575,6 +577,7 @@ Function OnRadioButtonClick2
     StrCpy $Checkbox2 "on"
 FunctionEnd
 
+${StrRep}
 Function getSid
   ${GSID}
   Pop $7
@@ -589,14 +592,23 @@ Function getSid
   StrCpy $SMPROGRAMS_PATH "$R2\Microsoft\Windows\Start Menu\Programs"
 
   ; 设置当前用户的 桌面 路径
-  ReadRegStr $R3 HKU "$SID\Volatile Environment" USERPROFILE
-  StrCpy $DESKTOP_PATH "$R3\Desktop"
+  ; 读取注册表中的桌面路径
+  ReadRegStr $R4 HKU "$SID\Volatile Environment" USERPROFILE
+  ReadRegStr $R3 HKU "$SID\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" "Desktop"
+  ${TrimNewLines} '$R3' $R9
+  System::Call "Shlwapi::StrStr(tR9, t`%USERPROFILE%`)i .r0"
+  ${if} $0 != 0
+    ${StrRep} '$R7' $R3 '%USERPROFILE%' '$R4'
+    StrCpy $DESKTOP_PATH "$R7"
+  ${else}
+    StrCpy $DESKTOP_PATH "$R3"
+  ${endIf}
   ; 设置临时路径
   StrCpy $Temp_PATH "$R1\Temp"
 
   ; MessageBox MB_OK "当前用户：$SID $\n  安装路径： $INSTDIR $\n 开始菜单 路径：$SMPROGRAMS_PATH  $\n 桌面 路径：$DESKTOP_PATH" 
 FunctionEnd
-
+${UnStrRep}
 Function un.getSid
   ${GSID}
   Pop $7
@@ -605,14 +617,22 @@ Function un.getSid
   ; 获取当前 用户的卸载路径
   ReadRegStr $R1 HKU "$SID\Software\${MY_GUID}" "InstallLocation"
   StrCpy $INSTDIR "$R1"
-  MessageBox MB_OK "$R1"
+  ; MessageBox MB_OK "$R1"
   ; 设置当前用户的 SMPROGRAMS 开始菜单 路径
   ReadRegStr $R2 HKU "$SID\Volatile Environment" APPDATA
   StrCpy $SMPROGRAMS_PATH "$R2\Microsoft\Windows\Start Menu\Programs"
 
   ; 设置当前用户的 桌面 路径
-  ReadRegStr $R3 HKU "$SID\Volatile Environment" USERPROFILE
-  StrCpy $DESKTOP_PATH "$R3\Desktop"
+  ReadRegStr $R4 HKU "$SID\Volatile Environment" USERPROFILE
+  ReadRegStr $R3 HKU "$SID\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" "Desktop"
+  ${TrimNewLines} '$R3' $R9
+  System::Call "Shlwapi::StrStr(tR9, t`%USERPROFILE%`)i .r0"
+  ${if} $0 != 0
+    ${UnStrRep} '$R7' $R3 '%USERPROFILE%' '$R4'
+    StrCpy $DESKTOP_PATH "$R7"
+  ${else}
+    StrCpy $DESKTOP_PATH "$R3"
+  ${endIf}
   
   ; MessageBox MB_OK "当前用户：$SID $\n安装路径： $INSTDIR $\n 开始菜单 路径：$SMPROGRAMS_PATH  $\n 桌面 路径：$DESKTOP_PATH" 
 FunctionEnd
