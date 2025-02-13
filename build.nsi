@@ -23,17 +23,17 @@
 
 ; °²×°³ÌÐò³õÊ¼¶¨Òå³£Á¿
 !define PRODUCT_NAME "Frigga Data Center"
-!define PRODUCT_VERSION "1.3.4.0"
+!define PRODUCT_VERSION "1.0.1.0"
 !define PRODUCT_FILE_VERSION "${MY_APP_VERSION}"
 !define PRODUCT_PUBLISHER "Frigga"
 !define PRODUCT_WEB_SITE "https://www.friggatech.com"
-!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Frigga Data Center.exe"
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKCU"
-!define EXE_NAME "Frigga Data Center.exe"
+!define EXE_NAME "${PRODUCT_NAME}.exe"
 
 ; ¶¨Òå GUID ±äÁ¿
-!define MY_GUID "friggaDataCenter"
+!define MY_GUID "friggaToolRenew"
 !define IDC_BUTTON_TRYME_ID 11035
 
 Var POWER 
@@ -87,7 +87,7 @@ RequestExecutionLevel user
 !insertmacro MUI_PAGE_INSTFILES
 ; °²×°Íê³ÉÒ³Ãæ
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW runon
-!define MUI_FINISHPAGE_RUN "$INSTDIR\Frigga Data Center.exe"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\${PRODUCT_NAME}.exe"
 !insertmacro MUI_PAGE_FINISH
 
 
@@ -122,9 +122,9 @@ LangString NoLabel ${LANG_ENGLISH} "No"
 LangString NoLabel ${LANG_SPANISH} "No"
 LangString NoLabel ${LANG_SimpChinese} "·ñ"
 
-LangString UNINSTALL_TEXT ${LANG_ENGLISH} "Are you sure you want to completely remove Frigga Data Center and all its components?"
-LangString UNINSTALL_TEXT ${LANG_SIMPCHINESE} "ÄúÈ·ÊµÒªÍêÈ«ÒÆ³ýFrigga Data Center ¼°ÆäËùÓÐµÄ×é¼þ£¿"
-LangString UNINSTALL_TEXT ${LANG_Spanish} "?? est¨¢ seguro de que quiere eliminar por completo el Frigga Data Center y todos sus componentes?"
+LangString UNINSTALL_TEXT ${LANG_ENGLISH} "Are you sure you want to completely remove ${PRODUCT_NAME} and all its components?"
+LangString UNINSTALL_TEXT ${LANG_SIMPCHINESE} "ÄúÈ·ÊµÒªÍêÈ«ÒÆ³ý${PRODUCT_NAME} ¼°ÆäËùÓÐµÄ×é¼þ£¿"
+LangString UNINSTALL_TEXT ${LANG_Spanish} "?? est¨¢ seguro de que quiere eliminar por completo el ${PRODUCT_NAME} y todos sus componentes?"
 
 LangString UNINSTALL_CONFIRM ${LANG_ENGLISH} "Thank you very much! ${PRODUCT_NAME} has been successfully removed."
 LangString UNINSTALL_CONFIRM ${LANG_SIMPCHINESE} "·Ç³£¸ÐÖxÄúµÄÊ¹ÓÃ£¡ ${PRODUCT_NAME} ÒÑ³É¹¦µØ´ÓÄúµÄ¼ÆËã»úÖÐÒÆ³ý¡£"
@@ -180,7 +180,7 @@ LangString Enable_Text ${LANG_Spanish} "La instalaci¨®n de una unidad no sistem¨
 ; ------ MUI ÏÖ´ú½çÃæ¶¨Òå½áÊø ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile ".\OutFile\${PRODUCT_FILE_VERSION}\Frigga_Data_Center_${PRODUCT_FILE_VERSION}.exe"
+OutFile ".\OutFile\${PRODUCT_FILE_VERSION}\Frigga_Renew_Tool_${PRODUCT_FILE_VERSION}.exe"
 InstallDir "$LOCALAPPDATA\Frigga"
 InstallDirRegKey HKCU "${PRODUCT_UNINST_KEY}" "UninstallString"
 ShowInstDetails hide
@@ -191,18 +191,18 @@ Section "MainSection" SEC01
   ; MessageBox MB_OK "SMPROGRAMS: $SMPROGRAMS_PATH \n DESKTOP: $DESKTOP_PATH"
   SetOutPath "$INSTDIR"
   SetOverwrite try
-  File ".\FilesToInstall\Frigga Data Center.exe"
-  CreateDirectory "$SMPROGRAMS_PATH\Frigga Data Center"
-  CreateShortCut "$SMPROGRAMS_PATH\Frigga Data Center\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
-  CreateShortCut "$DESKTOP_PATH\Frigga Data Center.lnk" "$INSTDIR\Frigga Data Center.exe"
+  File ".\FilesToInstall\${PRODUCT_NAME}.exe"
+  CreateDirectory "$SMPROGRAMS_PATH\${PRODUCT_NAME}"
+  CreateShortCut "$SMPROGRAMS_PATH\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\${PRODUCT_NAME}.exe"
+  CreateShortCut "$DESKTOP_PATH\${PRODUCT_NAME}.lnk" "$INSTDIR\${PRODUCT_NAME}.exe"
   File /r ".\FilesToInstall\*.*"
-  Delete "$SMPROGRAMS_PATH\Frigga Data Center.lnk"
+  Delete "$SMPROGRAMS_PATH\${PRODUCT_NAME}.lnk"
 SectionEnd
 
 Section -AdditionalIcons
   WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
-  CreateShortCut "$SMPROGRAMS_PATH\Frigga Data Center\Frigga.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
-  CreateShortCut "$SMPROGRAMS_PATH\Frigga Data Center\Uninstall.lnk" "$INSTDIR\uninst.exe"
+  CreateShortCut "$SMPROGRAMS_PATH\${PRODUCT_NAME}\Frigga.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
+  CreateShortCut "$SMPROGRAMS_PATH\${PRODUCT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe"
 SectionEnd
 
 Section -Post
@@ -213,7 +213,7 @@ Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
 
   WriteRegStr HKU "$SID\${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${EXE_NAME}"
-  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "DisplayName" "Frigga Data Center"
+  WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "DisplayName" "${PRODUCT_NAME}"
   WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
   WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\${EXE_NAME}"
   WriteRegStr HKU "$SID\${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
@@ -223,7 +223,7 @@ Section -Post
 
   ; MessageBox MB_OK $ShowCustomPage
   ${if} $ShowCustomPage == 1
-    WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe" "~ RUNASADMIN"
+    WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\${PRODUCT_NAME}.exe" "~ RUNASADMIN"
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe" "~ RUNASADMIN"
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\update.exe" "~ RUNASADMIN"
     WriteRegStr HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Property\cache\update\update.exe" "~ RUNASADMIN"
@@ -665,12 +665,12 @@ FunctionEnd
 
 Section Uninstall
   ; SetShellVarContext current
-  Delete "$SMPROGRAMS_PATH\Frigga Data Center\Uninstall.lnk"
-  Delete "$SMPROGRAMS_PATH\Frigga Data Center\Frigga.lnk"
-  Delete "$DESKTOP_PATH\Frigga Data Center.lnk"
-  Delete "$SMPROGRAMS_PATH\Frigga Data Center\Frigga Data Center.lnk"
+  Delete "$SMPROGRAMS_PATH\${PRODUCT_NAME}\Uninstall.lnk"
+  Delete "$SMPROGRAMS_PATH\${PRODUCT_NAME}\Frigga.lnk"
+  Delete "$DESKTOP_PATH\${PRODUCT_NAME}.lnk"
+  Delete "$SMPROGRAMS_PATH\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk"
 
-  RMDir "$SMPROGRAMS_PATH\Frigga Data Center"
+  RMDir "$SMPROGRAMS_PATH\${PRODUCT_NAME}"
 
   
   DeleteRegKey HKU "$SID\${PRODUCT_UNINST_KEY}"
@@ -680,7 +680,7 @@ Section Uninstall
   DeleteRegKey HKU "$SID\SOFTWARE\${MY_GUID}"
 
   DeleteRegKey HKU "$SID\SOFTWARE\WOW6432Node\${MY_GUID}"
-  DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Frigga Data Center.exe"
+  DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\${PRODUCT_NAME}.exe"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\uninst.exe"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\update.exe"
   DeleteRegValue HKU "$SID\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "$INSTDIR\Property\cache\update\update.exe"
@@ -688,7 +688,7 @@ Section Uninstall
 
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\*.*"
-  Delete "$INSTDIR\Frigga Data Center.exe"
+  Delete "$INSTDIR\${PRODUCT_NAME}.exe"
   RMDir /r $INSTDIR
   Delete "$INSTDIR\uninst.exe"
   ; µÝ¹éÉ¾³ý Property ÎÄ¼þ¼Ð¼°ÆäÄÚÈÝ  
@@ -731,12 +731,12 @@ Function un.onInit
   ; MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(UNINSTALL_TEXT)" IDYES un_yes  IDNO un_no
   ; ${If} $LANGUAGE == 1034
   ;   ; Î÷°àÑÀÓï
-  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "?? est¨¢ seguro de que quiere eliminar por completo el Frigga Data Center y todos sus componentes?" IDYES un_yes  IDNO un_no
+  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "?? est¨¢ seguro de que quiere eliminar por completo el ${PRODUCT_NAME} y todos sus componentes?" IDYES un_yes  IDNO un_no
   ; ${ElseIf} $LANGUAGE == 2052
   ;   ; ÖÐÎÄ
   ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "ÄúÈ·ÊµÒªÍêÈ«ÒÆ³ýFrigga Data Center ¼°ÆäËùÓÐµÄ×é¼þ£¿" IDYES un_yes  IDNO un_no
   ; ${Else}
-  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Are you sure you want to completely remove Frigga Data Center and all its components?" IDYES un_yes  IDNO un_no
+  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Are you sure you want to completely remove ${PRODUCT_NAME} and all its components?" IDYES un_yes  IDNO un_no
   ; ${EndIf}
 
   ; un_yes:
