@@ -21,9 +21,21 @@
   !define MY_APP_VERSION "1.0.0"
 !endif
 
+!ifdef PKG_VERSION
+  !define MY_PKG_VERSION ${PKG_VERSION}
+!else
+  !define MY_PKG_VERSION "1.0.0.0"
+!endif
+
+!ifdef APP_NAME
+  !define PRODUCT_NAME '${APP_NAME}'
+!else
+  !define PRODUCT_NAME "Frigga Data Center"
+!endif
+
 ; 安装程序初始定义常量
-!define PRODUCT_NAME "Frigga Data Center"
-!define PRODUCT_VERSION "1.0.1.0"
+; !define PRODUCT_NAME "Frigga Data Center"
+!define PRODUCT_VERSION "${MY_PKG_VERSION}"
 !define PRODUCT_FILE_VERSION "${MY_APP_VERSION}"
 !define PRODUCT_PUBLISHER "Frigga"
 !define PRODUCT_WEB_SITE "https://www.friggatech.com"
@@ -33,7 +45,13 @@
 !define EXE_NAME "${PRODUCT_NAME}.exe"
 
 ; 定义 GUID 变量
-!define MY_GUID "friggaToolRenew"
+; !define MY_GUID "friggaToolRenew"
+!ifdef APP_GUID
+  !define MY_GUID ${APP_GUID}
+!else
+  !define MY_GUID "friggaToolRenew"
+!endif
+
 !define IDC_BUTTON_TRYME_ID 11035
 
 Var POWER 
